@@ -1,0 +1,437 @@
+/* ===== GLOBAL ===== */
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f4f6f9;
+    color: #2c3e50;
+    overflow: hidden; /* page itself does not scroll */
+}
+
+/* ===== HEADER ===== */
+
+.top-header {
+    height: 60px;
+    background: #1f2d3d;
+    color: #fff;
+    padding: 0 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.company-name {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.user-info {
+    font-size: 13px;
+}
+
+.user-info a {
+    color: #ffc107;
+    margin-left: 15px;
+    text-decoration: none;
+}
+
+/* ===== MAIN LAYOUT ===== */
+
+.layout {
+    display: flex;                /* FIXED */
+    height: calc(100vh - 60px);   /* full height minus header */
+}
+
+/* ===== SIDEBAR ===== */
+
+.sidebar {
+    width: 180px;                 /* slim corporate width */
+    background: #ffffff;
+    border-right: 1px solid #e3e6f0;
+    padding: 20px 15px;
+    height: 100%;
+    overflow-y: auto;             /* scroll only if menu is long */
+}
+
+.sidebar-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu li {
+    margin-bottom: 8px;
+}
+
+.sidebar-menu a {
+    display: block;
+    padding: 6px 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #2c3e50;
+    font-size: 13px;
+}
+
+.sidebar-menu a:hover {
+    background: #f1f3f6;
+}
+
+/* ===== CONTENT ===== */
+
+.content {
+    flex: 1;                      /* takes remaining width */
+    padding: 30px 40px;
+    background: #f9fafc;
+    overflow-y: auto;             /* ONLY content scrolls */
+}
+
+/* ===== TITLES ===== */
+
+.page-title {
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.section-title {
+    margin: 35px 0 15px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ===== GRID ===== */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+/* ===== CARDS ===== */
+
+.card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #e3e6f0;
+}
+
+.card h4 {
+    font-size: 12px;
+    color: #6c757d;
+    margin: 0 0 10px;
+}
+
+.card-number {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+/* ===== TABLE ===== */
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    margin-bottom: 30px;
+}
+
+.admin-table th {
+    background: #f1f3f6;
+    padding: 10px;
+    font-size: 12px;
+    text-align: left;
+}
+
+.admin-table td {
+    padding: 10px;
+    font-size: 13px;
+    border-top: 1px solid #e3e6f0;
+}
+
+/* ===== BUTTONS ===== */
+
+.btn-primary {
+    background: #1f6ed4;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-primary:hover {
+    background: #155ab6;
+}
+
+.btn-secondary {
+    background: #e3e6f0;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* ===== MODAL ===== */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-box {
+    background: #fff;
+    width: 400px;
+    padding: 25px;
+    border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.modal-box h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e3e6f0;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.modal-actions {
+    text-align: right;
+    margin-top: 15px;
+}
+
+/* Modern Admin Table */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.admin-table th {
+    background: #f4f6f9;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    color: #2c3e50;
+}
+
+.admin-table td {
+    padding: 14px;
+    font-size: 14px;
+    border-top: 1px solid #eef1f5;
+}
+
+.admin-table tbody tr:hover {
+    background: #f9fbfd;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: #e6f7ee;
+    color: #1f8f4e;
+}
+
+.status-badge.disabled {
+    background: #fdecea;
+    color: #d93025;
+}
+
+/* Role badge */
+.role-badge {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #eef3ff;
+    color: #3455db;
+}
+
+/* Action buttons */
+.btn-table {
+    display: inline-block;
+    padding: 6px 10px;
+    font-size: 12px;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-right: 6px;
+    font-weight: 500;
+}
+
+.btn-table.edit {
+    background: #e9f1ff;
+    color: #2b5fd9;
+}
+
+.btn-table.toggle {
+    background: #fff3e0;
+    color: #d17a00;
+}
+
+.btn-table:hover {
+    opacity: 0.85;
+}
+
+.table-controls {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.table-controls input,
+.table-controls select {
+    padding: 8px 10px;
+    border: 1px solid #dce1e7;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.table-controls input {
+    width: 220px;
+}
+
+.pagination-wrapper {
+    margin-top: 20px;
+}
+
+.pagination {
+    list-style: none;
+    display: flex;
+    gap: 8px;
+    padding: 0;
+}
+
+.pagination li {
+    display: inline-block;
+}
+
+.pagination li a,
+.pagination li span {
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #f1f3f6;
+    text-decoration: none;
+    color: #333;
+}
+
+.pagination li a:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.pagination .active span {
+    background: #3b82f6;
+    color: white;
+    font-weight: bold;
+}
+
+/* CSR ticket modal width */
+.ticket-modal {
+    width: 600px;
+}
+
+/* two column layout */
+.ticket-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* ensure inputs are consistent */
+.ticket-grid input,
+.ticket-grid select {
+    width: 100%;
+    height: 38px;
+    box-sizing: border-box;
+}
+
+/* make form spacing clean */
+.ticket-grid .form-group {
+    margin-bottom: 5px;
+}
+
+/* description full width */
+.description-group textarea {
+    width: 100%;
+    height: 110px;
+    resize: none;
+}
+
+/* ===== CSR TABLE ACTION BUTTONS ===== */
+
+.btn-view,
+.btn-cancel{
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-right: 6px;
+    transition: all 0.15s ease;
+}
+
+/* View Button */
+.btn-view{
+    background: #e9f1ff;
+    color: #2b5fd9;
+}
+
+.btn-view:hover{
+    background: #2b5fd9;
+    color: #ffffff;
+}
+
+/* Cancel Button */
+.btn-cancel{
+    background: #fdecea;
+    color: #d93025;
+}
+
+.btn-cancel:hover{
+    background: #d93025;
+    color: #ffffff;
+}
