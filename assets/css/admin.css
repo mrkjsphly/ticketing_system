@@ -412,6 +412,8 @@ body {
     border-radius: 4px;
     margin-right: 6px;
     transition: all 0.15s ease;
+    border: none;          /* removes browser default button border */
+    cursor: pointer;       /* pointer cursor for buttons */
 }
 
 /* View Button */
@@ -434,4 +436,12 @@ body {
 .btn-cancel:hover{
     background: #d93025;
     color: #ffffff;
+}
+
+.ticket-cancelled{
+    background:#fff1f1;
+}
+
+.ticket-cancelled:hover{
+    background:#fff1f1 !important;
 }

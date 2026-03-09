@@ -28,7 +28,9 @@
 
             <?php foreach ($tickets as $ticket) : ?>
 
-                <tr>
+                <?php $status = $ticket->ticket_status; ?>
+
+                <tr class="<?= $ticket->ticket_status == 'Cancelled' ? 'ticket-cancelled' : '' ?>">
 
                     <td><?= $ticket->ticket_code ?></td>
 
@@ -40,17 +42,34 @@
 
                     <td><?= $ticket->priority ?></td>
 
-                    <td><?= $ticket->ticket_status ?></td>
+                    <td>
+
+                        <?php if ($status == 'Cancelled'): ?>
+                            <span class="badge badge-danger">Cancelled</span>
+
+                        <?php elseif ($status == 'New'): ?>
+                            <span class="badge badge-primary">New</span>
+
+                        <?php elseif ($status == 'In Progress'): ?>
+                            <span class="badge badge-warning">In Progress</span>
+
+                        <?php elseif ($status == 'Resolved'): ?>
+                            <span class="badge badge-success">Resolved</span>
+
+                        <?php else: ?>
+                            <span class="badge badge-secondary"><?= $status ?></span>
+                        <?php endif; ?>
+
+                    </td>
 
                     <td><?= date('M d, Y H:i', strtotime($ticket->created_at)) ?></td>
 
                     <td>
-                        <a href="<?php echo site_url('tickets/view/' . $ticket->id); ?>" class="btn-view">
+                        <button class="btn-view" onclick="openViewTicketModal(<?= $ticket->id ?>)">
                             View
-                        </a>
-
-                        <?php if ($ticket->ticket_status != 'Cancelled' && $ticket->ticket_status != 'Resolved') : ?>
-                            <a href="<?php echo site_url('tickets/cancel/' . $ticket->id); ?>"
+                        </button>
+                        <?php if ($status != 'Cancelled' && $status != 'Resolved') : ?>
+                            <a href="<?= site_url('tickets/cancel/' . $ticket->id); ?>"
                                 class="btn-cancel"
                                 onclick="return confirm('Are you sure you want to cancel this ticket?')">
                                 Cancel
@@ -174,6 +193,36 @@
 
 
 
+<!-- VIEW TICKET MODAL -->
+
+<div id="viewTicketModal" class="modal-overlay">
+    <div class="modal-box ticket-modal">
+
+        <h3>Ticket Details</h3>
+
+        <div id="ticketDetails">
+
+            <p><strong>Ticket Code:</strong> <span id="view_ticket_code"></span></p>
+            <p><strong>Client:</strong> <span id="view_client"></span></p>
+            <p><strong>Requester:</strong> <span id="view_requester"></span></p>
+            <p><strong>Category:</strong> <span id="view_category"></span></p>
+            <p><strong>Priority:</strong> <span id="view_priority"></span></p>
+            <p><strong>Status:</strong> <span id="view_status"></span></p>
+            <p><strong>Created:</strong> <span id="view_created"></span></p>
+
+            <p><strong>Description:</strong></p>
+            <div id="view_description"></div>
+
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeViewTicketModal()">Close</button>
+        </div>
+
+    </div>
+</div>
+
+
 <script>
     function openCreateTicketModal() {
         document.getElementById('createTicketModal').style.display = 'flex';
@@ -189,6 +238,30 @@
         if (event.target === modal) {
             modal.style.display = "none";
         }
+    }
+
+    function openViewTicketModal(ticket_id) {
+
+        fetch("<?= site_url('tickets/get_ticket/') ?>" + ticket_id)
+            .then(response => response.json())
+            .then(data => {
+
+                document.getElementById('view_ticket_code').innerText = data.ticket_code;
+                document.getElementById('view_client').innerText = data.client_name;
+                document.getElementById('view_requester').innerText = data.requester_name;
+                document.getElementById('view_category').innerText = data.category;
+                document.getElementById('view_priority').innerText = data.priority;
+                document.getElementById('view_status').innerText = data.ticket_status;
+                document.getElementById('view_created').innerText = data.created_at;
+                document.getElementById('view_description').innerText = data.description;
+
+                document.getElementById('viewTicketModal').style.display = 'flex';
+
+            });
+    }
+
+    function closeViewTicketModal() {
+        document.getElementById('viewTicketModal').style.display = 'none';
     }
 </script>
 

@@ -65,6 +65,14 @@ class Tickets extends MY_Controller
 
         $this->Ticket_model->log_activity($ticket_id, 'Ticket created');
 
+        $user_id = $this->session->userdata('user_id');
+
+        $this->db->insert('activity_logs', [
+            'user_id' => $user_id,
+            'action' => 'Created ticket ' . $ticket_data['ticket_code'],
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
         redirect('tickets');
     }
 
@@ -105,13 +113,29 @@ class Tickets extends MY_Controller
         $this->Ticket_model->cancel_ticket($id);
 
         // Log activity
+        $user_id = $this->session->userdata('user_id');
+
+        $ticket = $this->Ticket_model->get_ticket($id);
+
         $this->db->insert('activity_logs', [
-            'ticket_id' => $id,
-            'activity' => 'Ticket cancelled',
-            'performed_by' => $this->session->userdata('user_id'),
+            'user_id' => $user_id,
+            'action' => 'Cancelled ticket ' . $ticket->ticket_code,
             'created_at' => date('Y-m-d H:i:s')
         ]);
 
         redirect('tickets');
+    }
+
+    public function get_ticket($id)
+    {
+        $ticket = $this->db
+            ->select('tickets.*, clients.client_name')
+            ->from('tickets')
+            ->join('clients', 'clients.id = tickets.client_id')
+            ->where('tickets.id', $id)
+            ->get()
+            ->row();
+
+        echo json_encode($ticket);
     }
 }
