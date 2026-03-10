@@ -26,6 +26,7 @@ class Tickets extends MY_Controller
         $config['use_page_numbers'] = FALSE;
         $config['page_query_string'] = TRUE;
         $config['query_string_segment'] = 'page';
+        $config['uri_segment'] = 0;
 
         $config['full_tag_open']  = '<ul class="pagination">';
         $config['full_tag_close'] = '</ul>';
@@ -130,7 +131,7 @@ class Tickets extends MY_Controller
             'Status changed to ' . $status
         );
 
-        redirect('tickets/view/' . $id);
+        redirect('tickets');
     }
 
     public function cancel($id)

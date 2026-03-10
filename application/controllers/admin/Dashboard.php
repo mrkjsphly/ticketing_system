@@ -28,7 +28,7 @@ class Dashboard extends MY_Controller
 
         // ===== TICKET STATUS =====
         $data['total_tickets'] = $this->Ticket_model->count_all();
-        $data['open_tickets'] = $this->Ticket_model->count_open_tickets();;
+        $data['open_tickets'] = $this->Ticket_model->count_open_tickets();
         $data['inprogress']    = $this->Ticket_model->count_by_status('In Progress');
         $data['resolved']      = $this->Ticket_model->count_by_status('Resolved');
         $data['cancelled']     = $this->Ticket_model->count_by_status('Cancelled');

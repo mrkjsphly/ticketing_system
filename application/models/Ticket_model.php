@@ -39,17 +39,6 @@ class Ticket_model extends CI_Model
     // NEW FUNCTIONS FOR TICKET PAGE
     // =============================
 
-    public function get_tickets_by_user($user_id)
-    {
-        $this->db->select('tickets.*, clients.client_name');
-        $this->db->from('tickets');
-        $this->db->join('clients', 'clients.id = tickets.client_id', 'left');
-        $this->db->where('tickets.created_by', $user_id);
-        $this->db->order_by('tickets.created_at', 'DESC');
-
-        return $this->db->get()->result();
-    }
-
     public function create_ticket($data)
     {
         return $this->db->insert('tickets', $data);
@@ -57,12 +46,17 @@ class Ticket_model extends CI_Model
 
     public function get_ticket($id)
     {
-        $this->db->select('tickets.*, clients.client_name');
-        $this->db->from('tickets');
-        $this->db->join('clients', 'clients.id = tickets.client_id', 'left');
-        $this->db->where('tickets.id', $id);
+        $this->db->select('tickets.*, clients.client_name')
+            ->from('tickets')
+            ->join('clients', 'clients.id = tickets.client_id');
 
-        return $this->db->get()->row();
+        $role = $this->session->userdata('role');
+        if ($role === 'CSR') {
+            $this->db->where('tickets.created_by', $this->session->userdata('user_id'));
+        }
+
+        $ticket = $this->db->where('tickets.id', $id)->get()->row();
+        echo json_encode($ticket);
     }
 
     public function log_activity($ticket_id, $activity)
@@ -80,16 +74,17 @@ class Ticket_model extends CI_Model
         return $this->db
             ->where('ticket_id', $ticket_id)
             ->order_by('created_at', 'DESC')
-            ->get('activity_logs')
+            ->get('ticket_activities')
             ->result();
     }
 
     public function cancel_ticket($id)
     {
-        $this->db->where('id', $id);
+        $this->db->where('id', $id)
+            ->where('created_by', $this->session->userdata('user_id'));
         return $this->db->update('tickets', [
             'ticket_status' => 'Cancelled',
-            'cancelled_at' => date('Y-m-d H:i:s')
+            'cancelled_at'  => date('Y-m-d H:i:s')
         ]);
     }
 
