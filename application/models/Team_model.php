@@ -1,14 +1,15 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Team_model extends CI_Model {
+class Team_model extends CI_Model
+{
 
     public function get_all_teams()
     {
         return $this->db
-                    ->order_by('team_name', 'ASC')
-                    ->get('teams')
-                    ->result();
+            ->order_by('team_name', 'ASC')
+            ->get('teams')
+            ->result();
     }
 
     public function insert_team($data)
@@ -24,4 +25,19 @@ class Team_model extends CI_Model {
             ->row();
     }
 
+    public function get_teams_by_role($role)
+    {
+        return $this->db
+            ->where('role', $role)
+            ->get('teams')
+            ->result();
+    }
+
+    public function get_default_team_by_role($role)
+    {
+        return $this->db
+            ->where('role', $role)
+            ->get('teams')
+            ->row();
+    }
 }

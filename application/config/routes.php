@@ -53,3 +53,5 @@ $route['default_controller'] = 'auth/login';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 $route['admin/user/check-username'] = 'admin/user/check_username';
+$route['csr/dashboard'] = 'csr/dashboard';
+$route['tickets/endorse'] = 'tickets/endorse';

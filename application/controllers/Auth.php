@@ -68,7 +68,7 @@ class Auth extends CI_Controller {
                 break;
 
             case 'CSR':
-                redirect('tickets');
+                redirect('csr/dashboard');
                 break;
 
             case 'TECH':

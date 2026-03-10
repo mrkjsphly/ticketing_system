@@ -7,10 +7,9 @@ class Tickets extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-
         $this->require_roles(['CSR', 'TECH', 'ACCOUNTING']);
-
         $this->load->model('Ticket_model');
+        $this->load->model('Team_model');
     }
 
     public function index()
@@ -19,77 +18,82 @@ class Tickets extends MY_Controller
         $this->load->model('Client_model');
 
         $user_id = $this->session->userdata('user_id');
+        $page    = ($this->input->get('page')) ? (int) $this->input->get('page') : 0;
 
-        $config['base_url'] = site_url('tickets/index');
-        $config['total_rows'] = $this->Ticket_model->count_tickets_by_user($user_id);
-        $config['per_page'] = 5;
-        $config['uri_segment'] = 3;
+        $config['base_url']    = site_url('tickets/index');
+        $config['total_rows']  = $this->Ticket_model->count_tickets_by_user($user_id);
+        $config['per_page']    = 5;
+        $config['use_page_numbers'] = FALSE;
+        $config['page_query_string'] = TRUE;
+        $config['query_string_segment'] = 'page';
 
-        $config['full_tag_open'] = '<ul class="pagination">';
+        $config['full_tag_open']  = '<ul class="pagination">';
         $config['full_tag_close'] = '</ul>';
 
-        $config['num_tag_open'] = '<li>';
+        $config['num_tag_open']  = '<li>';
         $config['num_tag_close'] = '</li>';
 
-        $config['cur_tag_open'] = '<li class="active"><span>';
+        $config['cur_tag_open']  = '<li class="active"><span>';
         $config['cur_tag_close'] = '</span></li>';
 
-        $config['next_link'] = '&raquo;';
-        $config['next_tag_open'] = '<li>';
+        $config['next_link']      = '&raquo;';
+        $config['next_tag_open']  = '<li>';
         $config['next_tag_close'] = '</li>';
 
-        $config['prev_link'] = '&laquo;';
-        $config['prev_tag_open'] = '<li>';
+        $config['prev_link']      = '&laquo;';
+        $config['prev_tag_open']  = '<li>';
         $config['prev_tag_close'] = '</li>';
 
-        $config['last_link'] = 'Last';
-        $config['last_tag_open'] = '<li>';
+        $config['last_link']      = 'Last';
+        $config['last_tag_open']  = '<li>';
         $config['last_tag_close'] = '</li>';
 
-        $config['first_link'] = 'First';
-        $config['first_tag_open'] = '<li>';
+        $config['first_link']      = 'First';
+        $config['first_tag_open']  = '<li>';
         $config['first_tag_close'] = '</li>';
 
         $this->pagination->initialize($config);
 
-        $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
-
-        $data['tickets'] = $this->Ticket_model->get_tickets_by_user_paginated(
+        $data['tickets']    = $this->Ticket_model->get_tickets_by_user_paginated(
             $user_id,
             $config['per_page'],
             $page
         );
 
         $data['pagination'] = $this->pagination->create_links();
-        $data['clients'] = $this->Client_model->get_all_clients();
-        $data['title'] = 'My Tickets';
+        $data['clients']    = $this->Client_model->get_all_clients();
+        $data['teams']      = $this->db->get('teams')->result();
+        $data['title']      = 'My Tickets';
 
+        $this->load->view('csr/layout/header');
+        $this->load->view('csr/layout/sidebar');
         $this->load->view('csr/tickets/index', $data);
+        $this->load->view('csr/layout/footer');
     }
 
     public function store()
     {
+        // Auto-assign team based on category
+        $category = $this->input->post('category');
+        $team_role = ($category === 'Billing') ? 'ACCOUNTING' : 'TECH';
+        $assigned_team = $this->Team_model->get_default_team_by_role($team_role);
+        $assigned_team_id = $assigned_team ? $assigned_team->id : null;
+
         $ticket_data = [
-
-            'ticket_code' => 'TKT-' . date('Ymd-His'),
-
+            'ticket_code'   => 'TKT-' . date('Ymd-His'),
             'requester_name' => $this->input->post('requester_name'),
-            'contact_info' => $this->input->post('contact_info'),
-            'client_id' => $this->input->post('client_id'),
-
-            'category' => $this->input->post('category'),
-            'priority' => $this->input->post('priority'),
-            'ticket_type' => $this->input->post('ticket_type'),
-            'channel' => $this->input->post('channel'),
-
-            'subject' => $this->input->post('subject'),
-            'description' => $this->input->post('description'),
-
+            'contact_info'  => $this->input->post('contact_info'),
+            'client_id'     => $this->input->post('client_id'),
+            'category'      => $category,
+            'priority'      => $this->input->post('priority'),
+            'ticket_type'   => $this->input->post('ticket_type'),
+            'channel'       => $this->input->post('channel'),
+            'subject'       => $this->input->post('subject'),
+            'description'   => $this->input->post('description'),
             'ticket_status' => 'New',
-
-            'created_by' => $this->session->userdata('user_id'),
-
-            'created_at' => date('Y-m-d H:i:s')
+            'assigned_team' => $assigned_team_id,
+            'created_by'    => $this->session->userdata('user_id'),
+            'created_at'    => date('Y-m-d H:i:s')
         ];
 
         $this->Ticket_model->create_ticket($ticket_data);
@@ -213,5 +217,29 @@ class Tickets extends MY_Controller
         $this->load->view('csr/layout/sidebar');
         $this->load->view('csr/tickets/timeline', $data);
         $this->load->view('csr/layout/footer');
+    }
+
+    public function endorse()
+    {
+        $ticket_id = $this->input->post('ticket_id');
+        $team_id   = $this->input->post('team_id');
+
+        $this->db->where('id', $ticket_id)
+            ->where('created_by', $this->session->userdata('user_id'))
+            ->update('tickets', [
+                'assigned_team' => $team_id,
+                'updated_at'    => date('Y-m-d H:i:s')
+            ]);
+
+        // Log the activity
+        $team = $this->db->get_where('teams', ['id' => $team_id])->row();
+        $this->db->insert('ticket_activities', [
+            'ticket_id'    => $ticket_id,
+            'activity'     => 'Ticket endorsed to ' . $team->team_name,
+            'performed_by' => $this->session->userdata('user_id'),
+            'created_at'   => date('Y-m-d H:i:s')
+        ]);
+
+        echo json_encode(['success' => true]);
     }
 }

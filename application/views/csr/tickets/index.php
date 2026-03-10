@@ -1,96 +1,99 @@
-<?php $this->load->view('csr/layout/header'); ?>
-<?php $this->load->view('csr/layout/sidebar'); ?>
-
-<h2>My Tickets</h2>
+<h2 class="page-title">My Tickets</h2>
 
 <button class="btn-primary" onclick="openCreateTicketModal()">Create Ticket</button>
 
 <br><br>
 
-<table class="admin-table">
+<div class="table-responsive">
+    <table class="admin-table">
 
-    <thead>
-        <tr>
-            <th>Ticket Code</th>
-            <th>Client</th>
-            <th>Requester</th>
-            <th>Category</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Action</th>
-        </tr>
-    </thead>
+        <thead>
+            <tr>
+                <th>Ticket Code</th>
+                <th>Client</th>
+                <th>Requester</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
 
-    <tbody>
+        <tbody>
 
-        <?php if (!empty($tickets)) : ?>
+            <?php if (!empty($tickets)) : ?>
 
-            <?php foreach ($tickets as $ticket) : ?>
+                <?php foreach ($tickets as $ticket) : ?>
 
-                <?php $status = $ticket->ticket_status; ?>
+                    <?php $status = $ticket->ticket_status; ?>
 
-                <tr class="<?= $ticket->ticket_status == 'Cancelled' ? 'ticket-cancelled' : '' ?>">
+                    <tr class="<?= $ticket->ticket_status == 'Cancelled' ? 'ticket-cancelled' : '' ?>">
 
-                    <td><?= $ticket->ticket_code ?></td>
+                        <td><?= $ticket->ticket_code ?></td>
 
-                    <td><?= $ticket->client_name ?></td>
+                        <td><?= $ticket->client_name ?></td>
 
-                    <td><?= $ticket->requester_name ?></td>
+                        <td><?= $ticket->requester_name ?></td>
 
-                    <td><?= $ticket->category ?></td>
+                        <td><?= $ticket->category ?></td>
 
-                    <td>
-                        <span class="badge badge-<?= strtolower($ticket->priority) ?>">
-                            <?= $ticket->priority ?>
-                        </span>
-                    </td>
+                        <td>
+                            <span class="badge badge-<?= strtolower($ticket->priority) ?>">
+                                <?= $ticket->priority ?>
+                            </span>
+                        </td>
 
-                    <td>
-                        <?php $statusClass = strtolower(str_replace(' ', '', $ticket->ticket_status)); ?>
+                        <td>
+                            <?php $statusClass = strtolower(str_replace(' ', '', $ticket->ticket_status)); ?>
+                            <span class="badge badge-<?= $statusClass ?>">
+                                <?= $ticket->ticket_status ?>
+                            </span>
+                        </td>
 
-                        <span class="badge badge-<?= $statusClass ?>">
-                            <?= $ticket->ticket_status ?>
-                        </span>
-                    </td>
+                        <td><?= date('M d, Y h:i A', strtotime($ticket->created_at)) ?></td>
 
-                    <td><?= date('M d, Y h:i A', strtotime($ticket->created_at)) ?></td>
+                        <td class="action-column">
+                            <div class="action-buttons">
+                                <button type="button" class="btn-view" onclick="openViewTicketModal(<?= $ticket->id ?>)">
+                                    View
+                                </button>
 
-                    <td>
-                        <button class="btn-view" onclick="openViewTicketModal(<?= $ticket->id ?>)">
-                            View
-                        </button>
-                        <?php if ($status != 'Cancelled' && $status != 'Resolved') : ?>
-                            <a href="<?= site_url('tickets/cancel/' . $ticket->id); ?>"
-                                class="btn-cancel"
-                                onclick="return confirm('Are you sure you want to cancel this ticket?')">
-                                Cancel
-                            </a>
-                        <?php endif; ?>
-                    </td>
+                                <?php if ($status != 'Cancelled' && $status != 'Resolved') : ?>
+                                    <button type="button" class="btn-endorse" onclick="openEndorseModal(<?= $ticket->id ?>, <?= $ticket->assigned_team ?? 'null' ?>)">
+                                        Endorse
+                                    </button>
 
+                                    <a href="<?= site_url('tickets/cancel/' . $ticket->id); ?>"
+                                        class="btn-cancel"
+                                        onclick="return confirm('Are you sure you want to cancel this ticket?')">
+                                        Cancel
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+
+                    </tr>
+
+                <?php endforeach; ?>
+
+            <?php else : ?>
+
+                <tr>
+                    <td colspan="8">No tickets found</td>
                 </tr>
 
-            <?php endforeach; ?>
+            <?php endif; ?>
 
-        <?php else : ?>
+        </tbody>
 
-            <tr>
-                <td colspan="8">No tickets found</td>
-            </tr>
-
-        <?php endif; ?>
-
-    </tbody>
-
-</table>
+    </table>
+</div>
 
 <div class="pagination-wrapper">
     <?= $pagination ?>
 </div>
 
-
-<!-- CREATE TICKET MODAL -->
 
 <div id="createTicketModal" class="modal-overlay">
     <div class="modal-box ticket-modal">
@@ -113,21 +116,14 @@
 
                 <div class="form-group">
                     <label>Client</label>
-
                     <select name="client_id" required>
-
                         <option value="">Select Client</option>
-
                         <?php foreach ($clients as $client): ?>
-
                             <option value="<?= $client->id ?>">
                                 <?= $client->client_name ?>
                             </option>
-
                         <?php endforeach; ?>
-
                     </select>
-
                 </div>
 
                 <div class="form-group">
@@ -137,6 +133,7 @@
                         <option value="POS">POS</option>
                         <option value="Platform">Platform</option>
                         <option value="Server">Server</option>
+                        <option value="Billing">Billing</option>
                         <option value="Others">Others</option>
                     </select>
                 </div>
@@ -193,13 +190,9 @@
 </div>
 
 
-
-<!-- VIEW TICKET MODAL -->
-
 <div id="viewTicketModal" class="modal-overlay">
     <div class="modal-box ticket-modal">
 
-        <!-- Header Banner -->
         <div class="ticket-header">
             <div class="ticket-header-left">
                 <span class="ticket-code-label">Ticket Code</span>
@@ -211,32 +204,25 @@
             </div>
         </div>
 
-        <!-- Details Grid -->
         <div class="ticket-details-grid">
-
             <div class="ticket-detail-item">
                 <span class="detail-label">Client</span>
                 <span class="detail-value" id="view_client"></span>
             </div>
-
             <div class="ticket-detail-item">
                 <span class="detail-label">Requester</span>
                 <span class="detail-value" id="view_requester"></span>
             </div>
-
             <div class="ticket-detail-item">
                 <span class="detail-label">Category</span>
                 <span class="detail-value" id="view_category"></span>
             </div>
-
             <div class="ticket-detail-item">
                 <span class="detail-label">Created</span>
                 <span class="detail-value" id="view_created"></span>
             </div>
-
         </div>
 
-        <!-- Description -->
         <div class="ticket-description-box">
             <span class="detail-label">Description</span>
             <div id="view_description" class="description-content"></div>
@@ -246,6 +232,33 @@
             <button type="button" class="btn-secondary" onclick="closeViewTicketModal()">Close</button>
         </div>
 
+    </div>
+</div>
+
+<div id="endorseModal" class="modal-overlay">
+    <div class="modal-box" style="width: 400px;">
+        <h3>Endorse Ticket</h3>
+        <p style="font-size: 13px; color: #6c757d; margin-top: -10px;">
+            Select the team to endorse this ticket to.
+        </p>
+
+        <input type="hidden" id="endorse_ticket_id">
+
+        <div class="form-group">
+            <label>Assign to Team</label>
+            <select id="endorse_team_id">
+                <?php foreach ($teams as $team): ?>
+                    <option value="<?= $team->id ?>">
+                        <?= $team->team_name ?> (<?= $team->role ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeEndorseModal()">Cancel</button>
+            <button type="button" class="btn-primary" onclick="submitEndorse()">Endorse</button>
+        </div>
     </div>
 </div>
 
@@ -261,9 +274,8 @@
 
     window.onclick = function(event) {
         const modal = document.getElementById('createTicketModal');
-
         if (event.target === modal) {
-            modal.style.display = "none";
+            modal.style.display = 'none';
         }
     }
 
@@ -278,7 +290,6 @@
                 document.getElementById('view_category').innerText = data.category;
                 document.getElementById('view_description').innerText = data.description;
 
-                // Format created date
                 const date = new Date(data.created_at);
                 document.getElementById('view_created').innerText = date.toLocaleString('en-PH', {
                     month: 'short',
@@ -289,12 +300,10 @@
                     hour12: true
                 });
 
-                // Priority badge
                 const priorityBadge = document.getElementById('view_priority_badge');
                 priorityBadge.innerText = data.priority;
                 priorityBadge.className = 'badge badge-' + data.priority.toLowerCase();
 
-                // Status badge
                 const statusBadge = document.getElementById('view_status_badge');
                 statusBadge.innerText = data.ticket_status;
                 statusBadge.className = 'badge badge-' + data.ticket_status.toLowerCase().replace(' ', '');
@@ -306,6 +315,39 @@
     function closeViewTicketModal() {
         document.getElementById('viewTicketModal').style.display = 'none';
     }
-</script>
 
-<?php $this->load->view('csr/layout/footer'); ?>
+    function openEndorseModal(ticket_id, current_team_id) {
+        document.getElementById('endorse_ticket_id').value = ticket_id;
+        if (current_team_id) {
+            document.getElementById('endorse_team_id').value = current_team_id;
+        }
+        document.getElementById('endorseModal').style.display = 'flex';
+    }
+
+    function closeEndorseModal() {
+        document.getElementById('endorseModal').style.display = 'none';
+    }
+
+    function submitEndorse() {
+        const ticket_id = document.getElementById('endorse_ticket_id').value;
+        const team_id = document.getElementById('endorse_team_id').value;
+
+        fetch("<?= site_url('tickets/endorse') ?>", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `ticket_id=${ticket_id}&team_id=${team_id}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    closeEndorseModal();
+                    alert('Ticket endorsed successfully!');
+                    location.reload();
+                } else {
+                    alert('Something went wrong. Please try again.');
+                }
+            });
+    }
+</script>

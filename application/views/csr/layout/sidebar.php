@@ -7,6 +7,12 @@
     <ul class="sidebar-menu">
 
         <li>
+            <a href="<?= site_url('csr/dashboard') ?>">
+                Dashboard
+            </a>
+        </li>
+
+        <li>
             <a href="<?= site_url('tickets') ?>">
                 My Tickets
             </a>
@@ -14,7 +20,8 @@
 
         <li>
             <a href="<?= site_url('tickets/timeline') ?>">
-                Ticket Timeline</a>
+                Ticket Timeline
+            </a>
         </li>
 
     </ul>
