@@ -661,3 +661,89 @@ body {
     line-height: 1.6;
     min-height: 40px;
 }
+
+/* ===== TICKET TIMELINE IMPROVEMENTS ===== */
+
+/* Date group header */
+.timeline-date-group {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6c757d;
+    margin: 24px 0 12px -20px;
+    padding-left: 20px;
+    border-bottom: 1px solid #e3e6f0;
+    padding-bottom: 6px;
+}
+
+/* Color-coded dots */
+.dot-created    { background: #1f8f4e; }
+.dot-cancelled  { background: #d93025; }
+.dot-resolved   { background: #2b5fd9; }
+.dot-closed     { background: #6c757d; }
+.dot-inprogress { background: #c77700; }
+.dot-updated    { background: #9b59b6; }
+
+/* Timeline header row */
+.timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+/* Clickable ticket code */
+.timeline-ticket-code {
+    font-weight: 700;
+    font-size: 14px;
+    color: #2b5fd9;
+    text-decoration: none;
+}
+
+.timeline-ticket-code:hover {
+    text-decoration: underline;
+}
+
+/* Action badges */
+.timeline-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    padding: 3px 8px;
+    border-radius: 10px;
+}
+
+.timeline-badge.badge-created    { background: #e8f7ee; color: #1f8f4e; }
+.timeline-badge.badge-cancelled  { background: #fdecea; color: #d93025; }
+.timeline-badge.badge-resolved   { background: #e6f0ff; color: #2b5fd9; }
+.timeline-badge.badge-closed     { background: #f1f3f6; color: #6c757d; }
+.timeline-badge.badge-inprogress { background: #fff4e5; color: #c77700; }
+.timeline-badge.badge-updated    { background: #f3e8ff; color: #9b59b6; }
+
+/* ===== TIMELINE EXTRAS ===== */
+
+.timeline-subject {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.timeline-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.timeline-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+    font-size: 15px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e3e6f0;
+}

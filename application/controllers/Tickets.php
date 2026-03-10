@@ -67,13 +67,6 @@ class Tickets extends MY_Controller
         $this->load->view('csr/tickets/index', $data);
     }
 
-    public function create()
-    {
-        $data['title'] = 'Create Ticket';
-
-        $this->load->view('csr/tickets/create', $data);
-    }
-
     public function store()
     {
         $ticket_data = [
@@ -114,15 +107,6 @@ class Tickets extends MY_Controller
         ]);
 
         redirect('tickets');
-    }
-
-    public function view($id)
-    {
-        $data['ticket'] = $this->Ticket_model->get_ticket($id);
-
-        $data['activities'] = $this->Ticket_model->get_ticket_activities($id);
-
-        $this->load->view('csr/tickets/view', $data);
     }
 
     public function update_status($id)
@@ -172,17 +156,62 @@ class Tickets extends MY_Controller
 
     public function timeline()
     {
-        $user_id = $this->session->userdata('user_id');
+        $user_id   = $this->session->userdata('user_id');
+        $limit     = 10;
+        $offset    = (int) $this->input->get('offset') ?: 0;
+        $date_from = $this->input->get('date_from');
+        $date_to   = $this->input->get('date_to');
+        $action    = $this->input->get('action');
+        $code      = $this->input->get('code');
 
-        $data['activities'] = $this->db
-            ->select('ticket_activities.*, tickets.ticket_code')
-            ->from('ticket_activities')
-            ->join('tickets', 'tickets.id = ticket_activities.ticket_id')
-            ->where('tickets.created_by', $user_id)
+        // Count total for load more
+        $this->db->from('ticket_activities');
+        $this->db->join('tickets', 'tickets.id = ticket_activities.ticket_id');
+        $this->db->where('tickets.created_by', $user_id);
+        if (!empty($date_from)) $this->db->where('DATE(ticket_activities.created_at) >=', $date_from);
+        if (!empty($date_to))   $this->db->where('DATE(ticket_activities.created_at) <=', $date_to);
+        if (!empty($action))    $this->db->like('ticket_activities.activity', $action);
+        if (!empty($code))      $this->db->like('tickets.ticket_code', $code);
+        $total = $this->db->count_all_results();
+
+        // Get paginated results
+        $this->db->select('ticket_activities.*, tickets.ticket_code, tickets.priority, tickets.subject, tickets.id as ticket_id, clients.client_name, users.full_name as performed_by_name');
+        $this->db->from('ticket_activities');
+        $this->db->join('tickets', 'tickets.id = ticket_activities.ticket_id');
+        $this->db->join('clients', 'clients.id = tickets.client_id', 'left');
+        $this->db->join('users', 'users.id = ticket_activities.performed_by', 'left');
+        $this->db->where('tickets.created_by', $user_id);
+        if (!empty($date_from)) $this->db->where('DATE(ticket_activities.created_at) >=', $date_from);
+        if (!empty($date_to))   $this->db->where('DATE(ticket_activities.created_at) <=', $date_to);
+        if (!empty($action))    $this->db->like('ticket_activities.activity', $action);
+        if (!empty($code))      $this->db->like('tickets.ticket_code', $code);
+
+        $activities = $this->db
             ->order_by('ticket_activities.created_at', 'DESC')
+            ->limit($limit, $offset)
             ->get()
             ->result();
 
+        $data['activities']    = $activities;
+        $data['has_more']      = ($offset + $limit) < $total;
+        $data['next_offset']   = $offset + $limit;
+        $data['date_from']     = $date_from;
+        $data['date_to']       = $date_to;
+        $data['filter_action'] = $action;
+        $data['filter_code']   = $code;
+
+        if ($this->input->is_ajax_request()) {
+            echo json_encode([
+                'activities'  => $activities,
+                'has_more'    => $data['has_more'],
+                'next_offset' => $data['next_offset']
+            ]);
+            return;
+        }
+
+        $this->load->view('csr/layout/header');
+        $this->load->view('csr/layout/sidebar');
         $this->load->view('csr/tickets/timeline', $data);
+        $this->load->view('csr/layout/footer');
     }
 }
