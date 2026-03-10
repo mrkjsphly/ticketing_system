@@ -67,7 +67,7 @@ class Ticket_model extends CI_Model
 
     public function log_activity($ticket_id, $activity)
     {
-        $this->db->insert('activity_logs', [
+        $this->db->insert('ticket_activities', [
             'ticket_id' => $ticket_id,
             'activity' => $activity,
             'performed_by' => $this->session->userdata('user_id'),
@@ -91,5 +91,31 @@ class Ticket_model extends CI_Model
             'ticket_status' => 'Cancelled',
             'cancelled_at' => date('Y-m-d H:i:s')
         ]);
+    }
+
+    public function count_tickets_by_user($user_id)
+    {
+        return $this->db
+            ->where('created_by', $user_id)
+            ->count_all_results('tickets');
+    }
+
+    public function get_tickets_by_user_paginated($user_id, $limit, $offset)
+    {
+        return $this->db
+            ->select('tickets.*, clients.client_name')
+            ->from('tickets')
+            ->join('clients', 'clients.id = tickets.client_id')
+            ->where('tickets.created_by', $user_id)
+            ->order_by('tickets.created_at', 'DESC')
+            ->limit($limit, $offset)
+            ->get()
+            ->result();
+    }
+
+    public function count_open_tickets()
+    {
+        $this->db->where_in('ticket_status', ['New', 'In Progress']);
+        return $this->db->count_all_results('tickets');
     }
 }

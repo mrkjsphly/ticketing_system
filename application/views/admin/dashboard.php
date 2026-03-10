@@ -67,6 +67,12 @@
 <h3 class="section-title">Priority Overview</h3>
 
 <div class="dashboard-grid small-grid">
+
+    <div class="card">
+        <h4>Critical</h4>
+        <div class="card-number"><?= $medium_priority ?></div>
+    </div>
+
     <div class="card">
         <h4>High</h4>
         <div class="card-number"><?= $high_priority ?></div>
@@ -99,7 +105,7 @@
     </thead>
     <tbody>
         <?php if (!empty($recent_tickets)): ?>
-            <?php foreach($recent_tickets as $ticket): ?>
+            <?php foreach ($recent_tickets as $ticket): ?>
                 <tr>
                     <td><?= $ticket->ticket_code ?></td>
                     <td><?= $ticket->ticket_status ?></td>
@@ -130,7 +136,7 @@
     </thead>
     <tbody>
         <?php if (!empty($recent_logs)): ?>
-            <?php foreach(array_slice($recent_logs, 0, 5) as $log): ?>
+            <?php foreach (array_slice($recent_logs, 0, 5) as $log): ?>
                 <tr>
                     <td><?= $log->full_name ?></td>
                     <td><?= $log->action ?></td>

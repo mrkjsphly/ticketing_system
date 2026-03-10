@@ -15,14 +15,54 @@ class Tickets extends MY_Controller
 
     public function index()
     {
-        $data['title'] = 'My Tickets';
+        $this->load->library('pagination');
+        $this->load->model('Client_model');
 
         $user_id = $this->session->userdata('user_id');
 
-        $data['tickets'] = $this->Ticket_model->get_tickets_by_user($user_id);
+        $config['base_url'] = site_url('tickets/index');
+        $config['total_rows'] = $this->Ticket_model->count_tickets_by_user($user_id);
+        $config['per_page'] = 5;
+        $config['uri_segment'] = 3;
 
-        $this->load->model('Client_model');
+        $config['full_tag_open'] = '<ul class="pagination">';
+        $config['full_tag_close'] = '</ul>';
+
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+
+        $config['cur_tag_open'] = '<li class="active"><span>';
+        $config['cur_tag_close'] = '</span></li>';
+
+        $config['next_link'] = '&raquo;';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+
+        $config['prev_link'] = '&laquo;';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+
+        $config['last_link'] = 'Last';
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+
+        $config['first_link'] = 'First';
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+
+        $this->pagination->initialize($config);
+
+        $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
+
+        $data['tickets'] = $this->Ticket_model->get_tickets_by_user_paginated(
+            $user_id,
+            $config['per_page'],
+            $page
+        );
+
+        $data['pagination'] = $this->pagination->create_links();
         $data['clients'] = $this->Client_model->get_all_clients();
+        $data['title'] = 'My Tickets';
 
         $this->load->view('csr/tickets/index', $data);
     }
@@ -107,21 +147,12 @@ class Tickets extends MY_Controller
 
     public function cancel($id)
     {
-        $this->load->model('Ticket_model');
-
-        // Update ticket status
         $this->Ticket_model->cancel_ticket($id);
 
-        // Log activity
-        $user_id = $this->session->userdata('user_id');
+        // Log activity to timeline
+        $role = $this->session->userdata('role');
 
-        $ticket = $this->Ticket_model->get_ticket($id);
-
-        $this->db->insert('activity_logs', [
-            'user_id' => $user_id,
-            'action' => 'Cancelled ticket ' . $ticket->ticket_code,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
+        $this->Ticket_model->log_activity($id, 'Ticket cancelled by ' . $role);
 
         redirect('tickets');
     }
@@ -137,5 +168,21 @@ class Tickets extends MY_Controller
             ->row();
 
         echo json_encode($ticket);
+    }
+
+    public function timeline()
+    {
+        $user_id = $this->session->userdata('user_id');
+
+        $data['activities'] = $this->db
+            ->select('ticket_activities.*, tickets.ticket_code')
+            ->from('ticket_activities')
+            ->join('tickets', 'tickets.id = ticket_activities.ticket_id')
+            ->where('tickets.created_by', $user_id)
+            ->order_by('ticket_activities.created_at', 'DESC')
+            ->get()
+            ->result();
+
+        $this->load->view('csr/tickets/timeline', $data);
     }
 }

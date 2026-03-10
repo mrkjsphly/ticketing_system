@@ -1,7 +1,8 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Dashboard extends MY_Controller {
+class Dashboard extends MY_Controller
+{
 
     public function __construct()
     {
@@ -11,7 +12,7 @@ class Dashboard extends MY_Controller {
         $this->require_role('SUPERADMIN');
     }
 
-   public function index()
+    public function index()
     {
         $this->load->model('User_model');
         $this->load->model('Ticket_model');
@@ -27,7 +28,7 @@ class Dashboard extends MY_Controller {
 
         // ===== TICKET STATUS =====
         $data['total_tickets'] = $this->Ticket_model->count_all();
-        $data['open_tickets']  = $this->Ticket_model->count_by_status('Open');
+        $data['open_tickets'] = $this->Ticket_model->count_open_tickets();;
         $data['inprogress']    = $this->Ticket_model->count_by_status('In Progress');
         $data['resolved']      = $this->Ticket_model->count_by_status('Resolved');
         $data['cancelled']     = $this->Ticket_model->count_by_status('Cancelled');
@@ -36,6 +37,7 @@ class Dashboard extends MY_Controller {
         $data['high_priority']   = $this->Ticket_model->count_by_priority('High');
         $data['medium_priority'] = $this->Ticket_model->count_by_priority('Medium');
         $data['low_priority']    = $this->Ticket_model->count_by_priority('Low');
+        $data['critical_priority'] = $this->Ticket_model->count_by_priority('Critical');
 
         // ===== RECENT =====
         $data['recent_tickets'] = $this->Ticket_model->get_recent(5);

@@ -40,26 +40,18 @@
 
                     <td><?= $ticket->category ?></td>
 
-                    <td><?= $ticket->priority ?></td>
+                    <td>
+                        <span class="badge badge-<?= strtolower($ticket->priority) ?>">
+                            <?= $ticket->priority ?>
+                        </span>
+                    </td>
 
                     <td>
+                        <?php $statusClass = strtolower(str_replace(' ', '', $ticket->ticket_status)); ?>
 
-                        <?php if ($status == 'Cancelled'): ?>
-                            <span class="badge badge-danger">Cancelled</span>
-
-                        <?php elseif ($status == 'New'): ?>
-                            <span class="badge badge-primary">New</span>
-
-                        <?php elseif ($status == 'In Progress'): ?>
-                            <span class="badge badge-warning">In Progress</span>
-
-                        <?php elseif ($status == 'Resolved'): ?>
-                            <span class="badge badge-success">Resolved</span>
-
-                        <?php else: ?>
-                            <span class="badge badge-secondary"><?= $status ?></span>
-                        <?php endif; ?>
-
+                        <span class="badge badge-<?= $statusClass ?>">
+                            <?= $ticket->ticket_status ?>
+                        </span>
                     </td>
 
                     <td><?= date('M d, Y H:i', strtotime($ticket->created_at)) ?></td>
@@ -93,6 +85,9 @@
 
 </table>
 
+<div class="pagination-wrapper">
+    <?= $pagination ?>
+</div>
 
 
 <!-- CREATE TICKET MODAL -->

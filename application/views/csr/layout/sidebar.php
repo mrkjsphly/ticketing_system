@@ -13,9 +13,8 @@
         </li>
 
         <li>
-            <a href="#">
-                Ticket Timeline
-            </a>
+            <a href="<?= site_url('tickets/timeline') ?>">
+                Ticket Timeline</a>
         </li>
 
     </ul>
