@@ -1,7 +1,7 @@
-<?php 
+<?php
 $error   = $this->session->flashdata('error');
 $success = $this->session->flashdata('success');
-$roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
+$roles   = ['SUPERADMIN', 'TL', 'TECH', 'CSR', 'ACCOUNTING'];
 ?>
 
 <h2>User Management</h2>
@@ -28,14 +28,14 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
     <form method="get" action="<?= site_url('admin/user') ?>">
 
         <input type="text"
-               name="search"
-               placeholder="Search name or username..."
-               value="<?= $this->input->get('search') ?>">
+            name="search"
+            placeholder="Search name or username..."
+            value="<?= $this->input->get('search') ?>">
 
         <select name="role">
             <option value="">All Roles</option>
-            <?php foreach($roles as $r): ?>
-                <option value="<?= $r ?>" <?= $this->input->get('role')==$r?'selected':'' ?>>
+            <?php foreach ($roles as $r): ?>
+                <option value="<?= $r ?>" <?= $this->input->get('role') == $r ? 'selected' : '' ?>>
                     <?= $r ?>
                 </option>
             <?php endforeach; ?>
@@ -43,8 +43,8 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
 
         <select name="status">
             <option value="">All Status</option>
-            <option value="1" <?= $this->input->get('status')==='1'?'selected':'' ?>>Active</option>
-            <option value="0" <?= $this->input->get('status')==='0'?'selected':'' ?>>Disabled</option>
+            <option value="1" <?= $this->input->get('status') === '1' ? 'selected' : '' ?>>Active</option>
+            <option value="0" <?= $this->input->get('status') === '0' ? 'selected' : '' ?>>Disabled</option>
         </select>
 
         <button type="submit" class="btn-primary">Search</button>
@@ -103,8 +103,8 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
                         </a>
 
                         <a class="btn-table toggle"
-                        href="<?= site_url('admin/user/toggle/'.$user->id) ?>"
-                        onclick="return confirmDisable('<?= $user->full_name ?>', <?= $user->is_active ?>)">
+                            href="<?= site_url('admin/user/toggle/' . $user->id) ?>"
+                            onclick="return confirmDisable('<?= $user->full_name ?>', <?= $user->is_active ?>)">
                             <?= $user->is_active ? 'Disable' : 'Enable' ?>
                         </a>
                     </td>
@@ -120,6 +120,11 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
     </tbody>
 </table>
 
+<?php if (!empty($pagination)): ?>
+    <div class="pagination-wrapper">
+        <?= $pagination ?>
+    </div>
+<?php endif; ?>
 
 <!-- ================= CREATE USER MODAL ================= -->
 
@@ -155,7 +160,7 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
                 <label>Role</label>
                 <select name="role" required>
                     <option value="">Select Role</option>
-                    <?php foreach($roles as $r): ?>
+                    <?php foreach ($roles as $r): ?>
                         <option value="<?= $r ?>"><?= $r ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -165,7 +170,7 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
                 <label>Team</label>
                 <select name="team_id">
                     <option value="">Select Team</option>
-                    <?php foreach($teams as $team): ?>
+                    <?php foreach ($teams as $team): ?>
                         <option value="<?= $team->id ?>">
                             <?= $team->team_name ?>
                         </option>
@@ -206,7 +211,7 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
             <div class="form-group">
                 <label>Role</label>
                 <select name="role" id="edit_role" required>
-                    <?php foreach($roles as $r): ?>
+                    <?php foreach ($roles as $r): ?>
                         <option value="<?= $r ?>"><?= $r ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -216,7 +221,7 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
                 <label>Team</label>
                 <select name="team_id" id="edit_team">
                     <option value="">Select Team</option>
-                    <?php foreach($teams as $team): ?>
+                    <?php foreach ($teams as $team): ?>
                         <option value="<?= $team->id ?>">
                             <?= $team->team_name ?>
                         </option>
@@ -258,9 +263,9 @@ $roles   = ['SUPERADMIN','TL','TECH','CSR','ACCOUNTING'];
 
 
 <?php if ($error): ?>
-<script>
-    window.onload = function() {
-        document.getElementById("createUserModal").style.display = "flex";
-    };
-</script>
-<?php endif; ?> 
+    <script>
+        window.onload = function() {
+            document.getElementById("createUserModal").style.display = "flex";
+        };
+    </script>
+<?php endif; ?>

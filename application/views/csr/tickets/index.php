@@ -54,7 +54,7 @@
                         </span>
                     </td>
 
-                    <td><?= date('M d, Y H:i', strtotime($ticket->created_at)) ?></td>
+                    <td><?= date('M d, Y h:i A', strtotime($ticket->created_at)) ?></td>
 
                     <td>
                         <button class="btn-view" onclick="openViewTicketModal(<?= $ticket->id ?>)">
@@ -132,7 +132,13 @@
 
                 <div class="form-group">
                     <label>Category</label>
-                    <input type="text" name="category">
+                    <select name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="POS">POS</option>
+                        <option value="Platform">Platform</option>
+                        <option value="Server">Server</option>
+                        <option value="Others">Others</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -193,21 +199,47 @@
 <div id="viewTicketModal" class="modal-overlay">
     <div class="modal-box ticket-modal">
 
-        <h3>Ticket Details</h3>
+        <!-- Header Banner -->
+        <div class="ticket-header">
+            <div class="ticket-header-left">
+                <span class="ticket-code-label">Ticket Code</span>
+                <h3 id="view_ticket_code"></h3>
+            </div>
+            <div class="ticket-header-right">
+                <span id="view_priority_badge" class="badge"></span>
+                <span id="view_status_badge" class="badge"></span>
+            </div>
+        </div>
 
-        <div id="ticketDetails">
+        <!-- Details Grid -->
+        <div class="ticket-details-grid">
 
-            <p><strong>Ticket Code:</strong> <span id="view_ticket_code"></span></p>
-            <p><strong>Client:</strong> <span id="view_client"></span></p>
-            <p><strong>Requester:</strong> <span id="view_requester"></span></p>
-            <p><strong>Category:</strong> <span id="view_category"></span></p>
-            <p><strong>Priority:</strong> <span id="view_priority"></span></p>
-            <p><strong>Status:</strong> <span id="view_status"></span></p>
-            <p><strong>Created:</strong> <span id="view_created"></span></p>
+            <div class="ticket-detail-item">
+                <span class="detail-label">Client</span>
+                <span class="detail-value" id="view_client"></span>
+            </div>
 
-            <p><strong>Description:</strong></p>
-            <div id="view_description"></div>
+            <div class="ticket-detail-item">
+                <span class="detail-label">Requester</span>
+                <span class="detail-value" id="view_requester"></span>
+            </div>
 
+            <div class="ticket-detail-item">
+                <span class="detail-label">Category</span>
+                <span class="detail-value" id="view_category"></span>
+            </div>
+
+            <div class="ticket-detail-item">
+                <span class="detail-label">Created</span>
+                <span class="detail-value" id="view_created"></span>
+            </div>
+
+        </div>
+
+        <!-- Description -->
+        <div class="ticket-description-box">
+            <span class="detail-label">Description</span>
+            <div id="view_description" class="description-content"></div>
         </div>
 
         <div class="modal-actions">
@@ -236,7 +268,6 @@
     }
 
     function openViewTicketModal(ticket_id) {
-
         fetch("<?= site_url('tickets/get_ticket/') ?>" + ticket_id)
             .then(response => response.json())
             .then(data => {
@@ -245,13 +276,30 @@
                 document.getElementById('view_client').innerText = data.client_name;
                 document.getElementById('view_requester').innerText = data.requester_name;
                 document.getElementById('view_category').innerText = data.category;
-                document.getElementById('view_priority').innerText = data.priority;
-                document.getElementById('view_status').innerText = data.ticket_status;
-                document.getElementById('view_created').innerText = data.created_at;
                 document.getElementById('view_description').innerText = data.description;
 
-                document.getElementById('viewTicketModal').style.display = 'flex';
+                // Format created date
+                const date = new Date(data.created_at);
+                document.getElementById('view_created').innerText = date.toLocaleString('en-PH', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
 
+                // Priority badge
+                const priorityBadge = document.getElementById('view_priority_badge');
+                priorityBadge.innerText = data.priority;
+                priorityBadge.className = 'badge badge-' + data.priority.toLowerCase();
+
+                // Status badge
+                const statusBadge = document.getElementById('view_status_badge');
+                statusBadge.innerText = data.ticket_status;
+                statusBadge.className = 'badge badge-' + data.ticket_status.toLowerCase().replace(' ', '');
+
+                document.getElementById('viewTicketModal').style.display = 'flex';
             });
     }
 

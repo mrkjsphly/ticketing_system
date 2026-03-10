@@ -1,7 +1,8 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class User extends MY_Controller {
+class User extends MY_Controller
+{
 
     public function __construct()
     {
@@ -16,18 +17,80 @@ class User extends MY_Controller {
 
     public function index()
     {
-        $search     = $this->input->get('search');
-        $role       = $this->input->get('role');
-        $status     = $this->input->get('status');
-        $team       = $this->input->get('team');
-        $date_from  = $this->input->get('date_from');
-        $date_to    = $this->input->get('date_to');
+        $this->load->library('pagination');
 
-        $data['users'] = $this->User_model->get_filtered_users(
-            $search, $role, $status, $team, $date_from, $date_to
+        $search    = $this->input->get('search');
+        $role      = $this->input->get('role');
+        $status    = $this->input->get('status');
+        $team      = $this->input->get('team');
+        $date_from = $this->input->get('date_from');
+        $date_to   = $this->input->get('date_to');
+
+        // Build base URL that keeps filters when you change pages
+        $base_url = site_url('admin/user/index')
+            . '?search=' . urlencode($search)
+            . '&role=' . urlencode($role)
+            . '&status=' . urlencode($status)
+            . '&team=' . urlencode($team)
+            . '&date_from=' . urlencode($date_from)
+            . '&date_to=' . urlencode($date_to)
+            . '&page=';
+
+        $per_page = 5;
+        $page     = (int) $this->input->get('page') ?: 0;
+
+        $total = $this->User_model->count_filtered_users(
+            $search,
+            $role,
+            $status,
+            $team,
+            $date_from,
+            $date_to
         );
 
-        $data['teams'] = $this->Team_model->get_all_teams();
+        // Pagination config — same style as Activity Logs
+        $config['base_url']             = $base_url;
+        $config['total_rows']           = $total;
+        $config['per_page']             = $per_page;
+        $config['page_query_string']    = TRUE;
+        $config['query_string_segment'] = 'page';
+
+        $config['full_tag_open']  = '<ul class="pagination">';
+        $config['full_tag_close'] = '</ul>';
+
+        $config['first_link'] = 'First';
+        $config['last_link']  = 'Last';
+        $config['prev_link']  = '&laquo;';
+        $config['next_link']  = '&raquo;';
+
+        $config['first_tag_open']  = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open']   = '<li>';
+        $config['last_tag_close']  = '</li>';
+        $config['prev_tag_open']   = '<li>';
+        $config['prev_tag_close']  = '</li>';
+        $config['next_tag_open']   = '<li>';
+        $config['next_tag_close']  = '</li>';
+        $config['num_tag_open']    = '<li>';
+        $config['num_tag_close']   = '</li>';
+        $config['cur_tag_open']    = '<li class="active"><span>';
+        $config['cur_tag_close']   = '</span></li>';
+
+        $this->pagination->initialize($config);
+
+        $data['users'] = $this->User_model->get_filtered_users_paginated(
+            $per_page,
+            $page,
+            $search,
+            $role,
+            $status,
+            $team,
+            $date_from,
+            $date_to
+        );
+
+        $data['pagination'] = $this->pagination->create_links();
+        $data['teams']      = $this->Team_model->get_all_teams();
 
         $data['full_name'] = $this->session->userdata('full_name');
         $data['role']      = $this->session->userdata('role');
@@ -113,8 +176,10 @@ class User extends MY_Controller {
             show_error('Cannot downgrade SUPERADMIN.', 403);
         }
 
-        if ($user->id == $this->session->userdata('user_id') 
-            && $this->session->userdata('role') !== $role) {
+        if (
+            $user->id == $this->session->userdata('user_id')
+            && $this->session->userdata('role') !== $role
+        ) {
             show_error('You cannot change your own role.', 403);
         }
 
@@ -149,7 +214,7 @@ class User extends MY_Controller {
         if ($old_name !== $full_name) {
             $changes[] = "Name: {$old_name} → {$full_name}";
         }
-        
+
 
         if ($old_role !== $role) {
             $changes[] = "Role: {$old_role} → {$role}";

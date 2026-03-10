@@ -583,3 +583,81 @@ body {
     background:#ff4d4f;
     color:#ffffff;
 }
+
+/* ===== TICKET VIEW MODAL ===== */
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: #f0f4ff;
+    border-left: 4px solid #2b5fd9;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.ticket-code-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.ticket-header-left h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.ticket-header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.ticket-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.ticket-detail-item {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+.detail-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #999;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.ticket-description-box {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+}
+
+.description-content {
+    font-size: 14px;
+    color: #444;
+    margin-top: 6px;
+    line-height: 1.6;
+    min-height: 40px;
+}
