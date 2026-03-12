@@ -55,3 +55,7 @@ $route['translate_uri_dashes'] = FALSE;
 $route['admin/user/check-username'] = 'admin/user/check_username';
 $route['csr/dashboard'] = 'csr/dashboard';
 $route['tickets/endorse'] = 'tickets/endorse';
+$route['tech/dashboard'] = 'tech/dashboard';
+$route['tech/tickets']   = 'tech/tickets';
+$route['tech/get_ticket/(:num)']    = 'tech/get_ticket/$1';
+$route['tech/update_status/(:num)'] = 'tech/update_status/$1';

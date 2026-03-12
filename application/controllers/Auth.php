@@ -1,7 +1,8 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Auth extends CI_Controller {
+class Auth extends CI_Controller
+{
 
     public function __construct()
     {
@@ -40,12 +41,12 @@ class Auth extends CI_Controller {
                 'user_id'   => $user->id,
                 'full_name' => $user->full_name,
                 'role'      => $user->role,
+                'team_id'   => $user->team_id,
                 'logged_in' => TRUE
             ]);
 
             // 🔥 Redirect based on role
             $this->_redirect_by_role($user->role);
-
         } else {
             $this->session->set_flashdata('error', 'Invalid Username or Password');
             redirect('auth/login');

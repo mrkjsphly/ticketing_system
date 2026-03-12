@@ -255,6 +255,11 @@
             <div id="view_description" class="description-content"></div>
         </div>
 
+        <div class="ticket-description-box" id="view_resolution_box" style="display:none;">
+            <span class="detail-label">Resolution Notes</span>
+            <div id="view_resolution_notes" class="description-content"></div>
+        </div>
+
         <div class="modal-actions">
             <button type="button" class="btn-secondary" onclick="closeViewTicketModal()">Close</button>
         </div>
@@ -334,6 +339,14 @@
                 const statusBadge = document.getElementById('view_status_badge');
                 statusBadge.innerText = data.ticket_status;
                 statusBadge.className = 'badge badge-' + data.ticket_status.toLowerCase().replace(' ', '');
+
+                const resolutionBox = document.getElementById('view_resolution_box');
+                if (data.resolution_details) {
+                    document.getElementById('view_resolution_notes').innerText = data.resolution_details;
+                    resolutionBox.style.display = 'block';
+                } else {
+                    resolutionBox.style.display = 'none';
+                }
 
                 document.getElementById('viewTicketModal').style.display = 'flex';
             });
