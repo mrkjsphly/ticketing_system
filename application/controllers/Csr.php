@@ -17,6 +17,7 @@ class Csr extends MY_Controller
         // Status counts
         $data['total']       = $this->_count_by_status($user_id, null);
         $data['new']         = $this->_count_by_status($user_id, 'New');
+        $data['endorsed']    = $this->_count_by_status($user_id, 'Endorsed');
         $data['inprogress']  = $this->_count_by_status($user_id, 'In Progress');
         $data['resolved']    = $this->_count_by_status($user_id, 'Resolved');
         $data['cancelled']   = $this->_count_by_status($user_id, 'Cancelled');

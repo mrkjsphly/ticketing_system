@@ -47,6 +47,11 @@
     </div>
 
     <div class="card">
+        <h4>Endorsed</h4>
+        <div class="card-number" style="color: #7c3aed;"><?= $endorsed ?></div>
+    </div>
+
+    <div class="card">
         <h4>In Progress</h4>
         <div class="card-number"><?= $inprogress ?></div>
     </div>
@@ -70,7 +75,7 @@
 
     <div class="card">
         <h4>Critical</h4>
-        <div class="card-number"><?= $medium_priority ?></div>
+        <div class="card-number"><?= $critical_priority ?></div>
     </div>
 
     <div class="card">
@@ -110,7 +115,7 @@
                     <td><?= $ticket->ticket_code ?></td>
                     <td><?= $ticket->ticket_status ?></td>
                     <td><?= $ticket->priority ?></td>
-                    <td><?= $ticket->assigned_team ?></td>
+                    <td><?= $ticket->team_name ?? 'Unassigned' ?></td>
                     <td><?= $ticket->created_at ?></td>
                 </tr>
             <?php endforeach; ?>

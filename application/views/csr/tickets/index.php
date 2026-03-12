@@ -5,7 +5,7 @@
 <br><br>
 
 <div class="table-responsive">
-    <table class="admin-table">
+    <table class="admin-table tickets-table">
 
         <thead>
             <tr>
@@ -53,21 +53,20 @@
 
                         <td><?= date('M d, Y h:i A', strtotime($ticket->created_at)) ?></td>
 
-                        <td class="action-column">
+                        <td>
                             <div class="action-buttons">
-                                <button type="button" class="btn-view" onclick="openViewTicketModal(<?= $ticket->id ?>)">
-                                    View
+                                <button class="btn-icon btn-icon-view" title="View" onclick="openViewTicketModal(<?= $ticket->id ?>)">
+                                    👁
                                 </button>
-
-                                <?php if ($status != 'Cancelled' && $status != 'Resolved') : ?>
-                                    <button type="button" class="btn-endorse" onclick="openEndorseModal(<?= $ticket->id ?>, <?= $ticket->assigned_team ?? 'null' ?>)">
-                                        Endorse
+                                <?php if (in_array($status, ['New', 'Endorsed'])) : ?>
+                                    <button class="btn-icon btn-icon-endorse" title="Endorse" onclick="openEndorseModal(<?= $ticket->id ?>, <?= $ticket->assigned_team ?? 'null' ?>)">
+                                        📤
                                     </button>
-
                                     <a href="<?= site_url('tickets/cancel/' . $ticket->id); ?>"
-                                        class="btn-cancel"
+                                        class="btn-icon btn-icon-cancel"
+                                        title="Cancel"
                                         onclick="return confirm('Are you sure you want to cancel this ticket?')">
-                                        Cancel
+                                        ✕
                                     </a>
                                 <?php endif; ?>
                             </div>

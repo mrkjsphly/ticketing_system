@@ -16,6 +16,10 @@
         <div class="card-number" style="color: #2b5fd9;"><?= $new ?></div>
     </div>
     <div class="card">
+        <h4>Endorsed</h4>
+        <div class="card-number" style="color: #7c3aed;"><?= $endorsed ?></div>
+    </div>
+    <div class="card">
         <h4>In Progress</h4>
         <div class="card-number" style="color: #c77700;"><?= $inprogress ?></div>
     </div>

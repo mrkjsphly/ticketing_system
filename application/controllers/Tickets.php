@@ -228,8 +228,9 @@ class Tickets extends MY_Controller
         $this->db->where('id', $ticket_id)
             ->where('created_by', $this->session->userdata('user_id'))
             ->update('tickets', [
-                'assigned_team' => $team_id,
-                'updated_at'    => date('Y-m-d H:i:s')
+                'assigned_team'  => $team_id,
+                'ticket_status'  => 'Endorsed',
+                'updated_at'     => date('Y-m-d H:i:s')
             ]);
 
         // Log the activity

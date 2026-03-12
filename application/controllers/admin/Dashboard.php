@@ -29,6 +29,7 @@ class Dashboard extends MY_Controller
         // ===== TICKET STATUS =====
         $data['total_tickets'] = $this->Ticket_model->count_all();
         $data['open_tickets'] = $this->Ticket_model->count_open_tickets();
+        $data['endorsed']      = $this->Ticket_model->count_by_status('Endorsed');
         $data['inprogress']    = $this->Ticket_model->count_by_status('In Progress');
         $data['resolved']      = $this->Ticket_model->count_by_status('Resolved');
         $data['cancelled']     = $this->Ticket_model->count_by_status('Cancelled');
@@ -40,7 +41,14 @@ class Dashboard extends MY_Controller
         $data['critical_priority'] = $this->Ticket_model->count_by_priority('Critical');
 
         // ===== RECENT =====
-        $data['recent_tickets'] = $this->Ticket_model->get_recent(5);
+        $data['recent_tickets'] = $this->db
+            ->select('tickets.*, teams.team_name')
+            ->from('tickets')
+            ->join('teams', 'teams.id = tickets.assigned_team', 'left')
+            ->order_by('tickets.created_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->result();
         $data['recent_logs']    = $this->Activity_log_model->get_recent(5);
 
         // Session
