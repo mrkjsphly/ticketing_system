@@ -4,15 +4,11 @@ $success = $this->session->flashdata('success');
 $roles   = ['SUPERADMIN', 'TL', 'TECH', 'CSR', 'ACCOUNTING'];
 ?>
 
-<h2>User Management</h2>
+<h2 class="page-title">User Management</h2>
 
 <div class="action-buttons">
     <button class="btn-primary" onclick="openModal()">
         + Create User
-    </button>
-
-    <button class="btn-secondary" onclick="openTeamModal()">
-        + Create Team
     </button>
 </div>
 
@@ -237,30 +233,6 @@ $roles   = ['SUPERADMIN', 'TL', 'TECH', 'CSR', 'ACCOUNTING'];
         </form>
     </div>
 </div>
-
-
-<!-- ================= CREATE TEAM MODAL ================= -->
-
-<div id="createTeamModal" class="modal-overlay">
-    <div class="modal-box">
-        <h3>Create New Team</h3>
-
-        <form action="<?= site_url('admin/team/store') ?>" method="post">
-
-            <div class="form-group">
-                <label>Team Name</label>
-                <input type="text" name="team_name" required>
-            </div>
-
-            <div class="modal-actions">
-                <button type="button" class="btn-secondary" onclick="closeTeamModal()">Cancel</button>
-                <button type="submit" class="btn-primary">Create Team</button>
-            </div>
-
-        </form>
-    </div>
-</div>
-
 
 <?php if ($error): ?>
     <script>

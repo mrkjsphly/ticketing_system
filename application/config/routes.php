@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
 | -------------------------------------------------------------------------
@@ -59,3 +59,8 @@ $route['tech/dashboard'] = 'tech/dashboard';
 $route['tech/tickets']   = 'tech/tickets';
 $route['tech/get_ticket/(:num)']    = 'tech/get_ticket/$1';
 $route['tech/update_status/(:num)'] = 'tech/update_status/$1';
+$route['admin/teams']                = 'admin/teams/index';
+$route['admin/teams/store']          = 'admin/teams/store';
+$route['admin/teams/update/(:num)']  = 'admin/teams/update/$1';
+$route['admin/teams/delete/(:num)']  = 'admin/teams/delete/$1';
+$route['admin/teams/members/(:num)'] = 'admin/teams/members/$1';
