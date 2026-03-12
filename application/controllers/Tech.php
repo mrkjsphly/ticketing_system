@@ -74,7 +74,7 @@ class Tech extends MY_Controller
 
         $config['base_url']             = site_url('tech/tickets');
         $config['total_rows']           = $total_rows;
-        $config['per_page']             = 10;
+        $config['per_page']             = 5;
         $config['use_page_numbers']     = FALSE;
         $config['page_query_string']    = TRUE;
         $config['query_string_segment'] = 'page';
