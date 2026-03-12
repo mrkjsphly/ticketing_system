@@ -797,3 +797,12 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* ===== DASHBOARD GRIDS ===== */
+.status-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.priority-grid {
+    grid-template-columns: repeat(4, 1fr);
+}

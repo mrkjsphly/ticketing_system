@@ -17,16 +17,35 @@ class Tickets extends MY_Controller
         $this->load->library('pagination');
         $this->load->model('Client_model');
 
-        $user_id = $this->session->userdata('user_id');
-        $page    = ($this->input->get('page')) ? (int) $this->input->get('page') : 0;
+        $user_id  = $this->session->userdata('user_id');
+        $page     = ($this->input->get('page')) ? (int) $this->input->get('page') : 0;
+        $search   = $this->input->get('search');
+        $status   = $this->input->get('status');
+        $priority = $this->input->get('priority');
 
-        $config['base_url']    = site_url('tickets/index');
-        $config['total_rows']  = $this->Ticket_model->count_tickets_by_user($user_id);
-        $config['per_page']    = 5;
-        $config['use_page_numbers'] = FALSE;
-        $config['page_query_string'] = TRUE;
+        // Build base query with filters
+        $this->db->from('tickets')
+            ->join('clients', 'clients.id = tickets.client_id', 'left')
+            ->where('tickets.created_by', $user_id);
+
+        if ($search) {
+            $this->db->group_start()
+                ->like('tickets.ticket_code', $search)
+                ->or_like('tickets.requester_name', $search)
+                ->group_end();
+        }
+        if ($status)   $this->db->where('tickets.ticket_status', $status);
+        if ($priority) $this->db->where('tickets.priority', $priority);
+
+        $total_rows = $this->db->count_all_results();
+
+        $config['base_url']             = site_url('tickets/index');
+        $config['total_rows']           = $total_rows;
+        $config['per_page']             = 5;
+        $config['use_page_numbers']     = FALSE;
+        $config['page_query_string']    = TRUE;
         $config['query_string_segment'] = 'page';
-        $config['uri_segment'] = 0;
+        $config['uri_segment']          = 0;
 
         $config['full_tag_open']  = '<ul class="pagination">';
         $config['full_tag_close'] = '</ul>';
@@ -55,11 +74,26 @@ class Tickets extends MY_Controller
 
         $this->pagination->initialize($config);
 
-        $data['tickets']    = $this->Ticket_model->get_tickets_by_user_paginated(
-            $user_id,
-            $config['per_page'],
-            $page
-        );
+        // Build the actual data query with filters
+        $this->db->select('tickets.*, clients.client_name')
+            ->from('tickets')
+            ->join('clients', 'clients.id = tickets.client_id', 'left')
+            ->where('tickets.created_by', $user_id);
+
+        if ($search) {
+            $this->db->group_start()
+                ->like('tickets.ticket_code', $search)
+                ->or_like('tickets.requester_name', $search)
+                ->group_end();
+        }
+        if ($status)   $this->db->where('tickets.ticket_status', $status);
+        if ($priority) $this->db->where('tickets.priority', $priority);
+
+        $data['tickets'] = $this->db
+            ->order_by('tickets.created_at', 'DESC')
+            ->limit($config['per_page'], $page)
+            ->get()
+            ->result();
 
         $data['pagination'] = $this->pagination->create_links();
         $data['clients']    = $this->Client_model->get_all_clients();
@@ -75,26 +109,26 @@ class Tickets extends MY_Controller
     public function store()
     {
         // Auto-assign team based on category
-        $category = $this->input->post('category');
+        $category  = $this->input->post('category');
         $team_role = ($category === 'Billing') ? 'ACCOUNTING' : 'TECH';
-        $assigned_team = $this->Team_model->get_default_team_by_role($team_role);
+        $assigned_team    = $this->Team_model->get_default_team_by_role($team_role);
         $assigned_team_id = $assigned_team ? $assigned_team->id : null;
 
         $ticket_data = [
-            'ticket_code'   => 'TKT-' . date('Ymd-His'),
+            'ticket_code'    => 'TKT-' . date('Ymd-His'),
             'requester_name' => $this->input->post('requester_name'),
-            'contact_info'  => $this->input->post('contact_info'),
-            'client_id'     => $this->input->post('client_id'),
-            'category'      => $category,
-            'priority'      => $this->input->post('priority'),
-            'ticket_type'   => $this->input->post('ticket_type'),
-            'channel'       => $this->input->post('channel'),
-            'subject'       => $this->input->post('subject'),
-            'description'   => $this->input->post('description'),
-            'ticket_status' => 'New',
-            'assigned_team' => $assigned_team_id,
-            'created_by'    => $this->session->userdata('user_id'),
-            'created_at'    => date('Y-m-d H:i:s')
+            'contact_info'   => $this->input->post('contact_info'),
+            'client_id'      => $this->input->post('client_id'),
+            'category'       => $category,
+            'priority'       => $this->input->post('priority'),
+            'ticket_type'    => $this->input->post('ticket_type'),
+            'channel'        => $this->input->post('channel'),
+            'subject'        => $this->input->post('subject'),
+            'description'    => $this->input->post('description'),
+            'ticket_status'  => 'New',
+            'assigned_team'  => $assigned_team_id,
+            'created_by'     => $this->session->userdata('user_id'),
+            'created_at'     => date('Y-m-d H:i:s')
         ];
 
         $this->Ticket_model->create_ticket($ticket_data);
@@ -106,8 +140,8 @@ class Tickets extends MY_Controller
         $user_id = $this->session->userdata('user_id');
 
         $this->db->insert('activity_logs', [
-            'user_id' => $user_id,
-            'action' => 'Created ticket ' . $ticket_data['ticket_code'],
+            'user_id'    => $user_id,
+            'action'     => 'Created ticket ' . $ticket_data['ticket_code'],
             'created_at' => date('Y-m-d H:i:s')
         ]);
 
@@ -126,10 +160,7 @@ class Tickets extends MY_Controller
 
         $this->Ticket_model->update_status($id, $status);
 
-        $this->Ticket_model->log_activity(
-            $id,
-            'Status changed to ' . $status
-        );
+        $this->Ticket_model->log_activity($id, 'Status changed to ' . $status);
 
         redirect('tickets');
     }
@@ -138,9 +169,7 @@ class Tickets extends MY_Controller
     {
         $this->Ticket_model->cancel_ticket($id);
 
-        // Log activity to timeline
         $role = $this->session->userdata('role');
-
         $this->Ticket_model->log_activity($id, 'Ticket cancelled by ' . $role);
 
         redirect('tickets');
@@ -148,14 +177,16 @@ class Tickets extends MY_Controller
 
     public function get_ticket($id)
     {
-        $ticket = $this->db
-            ->select('tickets.*, clients.client_name')
+        $this->db->select('tickets.*, clients.client_name')
             ->from('tickets')
-            ->join('clients', 'clients.id = tickets.client_id')
-            ->where('tickets.id', $id)
-            ->get()
-            ->row();
+            ->join('clients', 'clients.id = tickets.client_id');
 
+        $role = $this->session->userdata('role');
+        if ($role === 'CSR') {
+            $this->db->where('tickets.created_by', $this->session->userdata('user_id'));
+        }
+
+        $ticket = $this->db->where('tickets.id', $id)->get()->row();
         echo json_encode($ticket);
     }
 
@@ -228,12 +259,11 @@ class Tickets extends MY_Controller
         $this->db->where('id', $ticket_id)
             ->where('created_by', $this->session->userdata('user_id'))
             ->update('tickets', [
-                'assigned_team'  => $team_id,
-                'ticket_status'  => 'Endorsed',
-                'updated_at'     => date('Y-m-d H:i:s')
+                'assigned_team' => $team_id,
+                'ticket_status' => 'Endorsed',
+                'updated_at'    => date('Y-m-d H:i:s')
             ]);
 
-        // Log the activity
         $team = $this->db->get_where('teams', ['id' => $team_id])->row();
         $this->db->insert('ticket_activities', [
             'ticket_id'    => $ticket_id,

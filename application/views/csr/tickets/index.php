@@ -1,8 +1,34 @@
 <h2 class="page-title">My Tickets</h2>
 
-<button class="btn-primary" onclick="openCreateTicketModal()">Create Ticket</button>
+<div class="table-controls">
+    <button class="btn-primary" onclick="openCreateTicketModal()">Create Ticket</button>
 
-<br><br>
+    <form method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0;">
+        <input type="text" name="search" placeholder="Search ticket code or requester..."
+            value="<?= htmlspecialchars($this->input->get('search') ?? '') ?>" style="width: 260px;">
+
+        <select name="status">
+            <option value="">All Status</option>
+            <?php foreach (['New', 'Endorsed', 'In Progress', 'Resolved', 'Cancelled'] as $s): ?>
+                <option value="<?= $s ?>" <?= $this->input->get('status') == $s ? 'selected' : '' ?>>
+                    <?= $s ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <select name="priority">
+            <option value="">All Priority</option>
+            <?php foreach (['Low', 'Medium', 'High', 'Critical'] as $p): ?>
+                <option value="<?= $p ?>" <?= $this->input->get('priority') == $p ? 'selected' : '' ?>>
+                    <?= $p ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+
+        <button type="submit" class="btn-primary">Search</button>
+        <a href="<?= site_url('tickets') ?>" class="btn-secondary">Reset</a>
+    </form>
+</div>
 
 <div class="table-responsive">
     <table class="admin-table tickets-table">
@@ -79,7 +105,9 @@
             <?php else : ?>
 
                 <tr>
-                    <td colspan="8">No tickets found</td>
+                    <td colspan="8" style="text-align: center; color: #6c757d; padding: 30px;">
+                        No tickets found.
+                    </td>
                 </tr>
 
             <?php endif; ?>
