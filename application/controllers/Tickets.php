@@ -177,9 +177,11 @@ class Tickets extends MY_Controller
 
     public function get_ticket($id)
     {
-        $this->db->select('tickets.*, clients.client_name')
+        $this->db->select('tickets.*, clients.client_name, resolver.full_name as resolved_by_name, closer.full_name as closed_by_name')
             ->from('tickets')
-            ->join('clients', 'clients.id = tickets.client_id');
+            ->join('clients', 'clients.id = tickets.client_id', 'left')
+            ->join('users as resolver', 'resolver.id = tickets.resolved_by', 'left')
+            ->join('users as closer', 'closer.id = tickets.closed_by', 'left');
 
         $role = $this->session->userdata('role');
         if ($role === 'CSR') {
@@ -189,7 +191,7 @@ class Tickets extends MY_Controller
         $ticket = $this->db->where('tickets.id', $id)->get()->row();
 
         // Fallback: if resolved_by is null, look up from ticket_activities
-        if ($ticket && empty($ticket->resolved_by_name) && $ticket->ticket_status === 'Resolved') {
+        if ($ticket && empty($ticket->resolved_by_name) && in_array($ticket->ticket_status, ['Resolved', 'For Closure', 'Closed'])) {
             $activity = $this->db
                 ->select('users.full_name')
                 ->from('ticket_activities')

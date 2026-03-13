@@ -7,11 +7,12 @@
         value="<?= $filter_code ?>">
     <select name="action" id="filter_action">
         <option value="">All Actions</option>
-        <option value="created" <?= $filter_action == 'created'    ? 'selected' : '' ?>>Created</option>
-        <option value="cancelled" <?= $filter_action == 'cancelled'  ? 'selected' : '' ?>>Cancelled</option>
-        <option value="resolved" <?= $filter_action == 'resolved'   ? 'selected' : '' ?>>Resolved</option>
-        <option value="closed" <?= $filter_action == 'closed'     ? 'selected' : '' ?>>Closed</option>
-        <option value="progress" <?= $filter_action == 'progress'   ? 'selected' : '' ?>>In Progress</option>
+        <option value="created"   <?= $filter_action == 'created'   ? 'selected' : '' ?>>Created</option>
+        <option value="cancelled" <?= $filter_action == 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
+        <option value="resolved"  <?= $filter_action == 'resolved'  ? 'selected' : '' ?>>Resolved</option>
+        <option value="closure"   <?= $filter_action == 'closure'   ? 'selected' : '' ?>>For Closure</option>
+        <option value="closed"    <?= $filter_action == 'closed'    ? 'selected' : '' ?>>Closed</option>
+        <option value="progress"  <?= $filter_action == 'progress'  ? 'selected' : '' ?>>In Progress</option>
     </select>
     <input type="date" name="date_from" value="<?= $date_from ?>">
     <input type="date" name="date_to" value="<?= $date_to ?>">
@@ -40,6 +41,9 @@
             } elseif (strpos($activity_lower, 'resolved') !== false) {
                 $action_type = 'resolved';
                 $badge_label = 'RESOLVED';
+            } elseif (strpos($activity_lower, 'closure') !== false) {
+                $action_type = 'forclosure';
+                $badge_label = 'FOR CLOSURE';
             } elseif (strpos($activity_lower, 'closed') !== false) {
                 $action_type = 'closed';
                 $badge_label = 'CLOSED';
@@ -115,6 +119,7 @@
     </div>
 <?php endif; ?>
 
+
 <!-- VIEW TICKET MODAL -->
 <div id="viewTicketModal" class="modal-overlay">
     <div class="modal-box ticket-modal">
@@ -128,6 +133,7 @@
                 <span id="view_status_badge" class="badge"></span>
             </div>
         </div>
+
         <div class="ticket-details-grid">
             <div class="ticket-detail-item">
                 <span class="detail-label">Client</span>
@@ -146,15 +152,46 @@
                 <span class="detail-value" id="view_created"></span>
             </div>
         </div>
+
         <div class="ticket-description-box">
             <span class="detail-label">Description</span>
             <div id="view_description" class="description-content"></div>
         </div>
+
+        <div class="ticket-description-box" id="view_resolution_box" style="display:none;">
+            <span class="detail-label">Resolution Notes</span>
+            <div id="view_resolution_notes" class="description-content"></div>
+            <div style="display:flex; gap:20px; margin-top:10px;">
+                <div>
+                    <span class="detail-label">Resolved By</span>
+                    <div class="detail-value" id="view_resolved_by"></div>
+                </div>
+                <div>
+                    <span class="detail-label">Resolved At</span>
+                    <div class="detail-value" id="view_resolved_at"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ticket-description-box" id="view_closure_box" style="display:none;">
+            <div style="display:flex; gap:20px;">
+                <div>
+                    <span class="detail-label">Closed By</span>
+                    <div class="detail-value" id="view_closed_by"></div>
+                </div>
+                <div>
+                    <span class="detail-label">Closed At</span>
+                    <div class="detail-value" id="view_closed_at"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-actions">
             <button type="button" class="btn-secondary" onclick="closeViewTicketModal()">Close</button>
         </div>
     </div>
 </div>
+
 
 <script>
     // ===== LOAD MORE =====
@@ -170,9 +207,7 @@
         params.set('offset', currentOffset);
 
         fetch(baseUrl + '?' + params.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(r => r.json())
             .then(data => {
@@ -195,9 +230,7 @@
 
         activities.forEach(a => {
             const date = new Date(a.created_at).toLocaleDateString('en-PH', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
+                month: 'long', day: 'numeric', year: 'numeric'
             });
 
             if (date !== lastDate) {
@@ -211,30 +244,26 @@
             const actLower = a.activity.toLowerCase();
             let actionType, badgeLabel;
             if (actLower.includes('created')) {
-                actionType = 'created';
-                badgeLabel = 'CREATED';
+                actionType = 'created';       badgeLabel = 'CREATED';
             } else if (actLower.includes('cancelled')) {
-                actionType = 'cancelled';
-                badgeLabel = 'CANCELLED';
+                actionType = 'cancelled';     badgeLabel = 'CANCELLED';
             } else if (actLower.includes('resolved')) {
-                actionType = 'resolved';
-                badgeLabel = 'RESOLVED';
+                actionType = 'resolved';      badgeLabel = 'RESOLVED';
+            } else if (actLower.includes('closure')) {
+                actionType = 'forclosure';    badgeLabel = 'FOR CLOSURE';
             } else if (actLower.includes('closed')) {
-                actionType = 'closed';
-                badgeLabel = 'CLOSED';
+                actionType = 'closed';        badgeLabel = 'CLOSED';
             } else if (actLower.includes('progress')) {
-                actionType = 'inprogress';
-                badgeLabel = 'IN PROGRESS';
+                actionType = 'inprogress';    badgeLabel = 'IN PROGRESS';
             } else {
-                actionType = 'updated';
-                badgeLabel = 'UPDATED';
+                actionType = 'updated';       badgeLabel = 'UPDATED';
             }
 
             const item = document.createElement('div');
-            item.className = `timeline-item`;
+            item.className = 'timeline-item';
             item.dataset.action = actionType;
-            item.dataset.code = a.ticket_code.toLowerCase();
-            item.dataset.date = a.created_at.substring(0, 10);
+            item.dataset.code   = a.ticket_code.toLowerCase();
+            item.dataset.date   = a.created_at.substring(0, 10);
             item.innerHTML = `
                 <div class="timeline-dot dot-${actionType}"></div>
                 <div class="timeline-content">
@@ -261,29 +290,55 @@
         fetch("<?= site_url('tickets/get_ticket/') ?>" + ticket_id)
             .then(r => r.json())
             .then(data => {
-                document.getElementById('view_ticket_code').innerText = data.ticket_code;
-                document.getElementById('view_client').innerText = data.client_name;
-                document.getElementById('view_requester').innerText = data.requester_name;
-                document.getElementById('view_category').innerText = data.category;
-                document.getElementById('view_description').innerText = data.description;
+                document.getElementById('view_ticket_code').innerText  = data.ticket_code;
+                document.getElementById('view_client').innerText       = data.client_name;
+                document.getElementById('view_requester').innerText    = data.requester_name;
+                document.getElementById('view_category').innerText     = data.category;
+                document.getElementById('view_description').innerText  = data.description;
 
-                const date = new Date(data.created_at);
-                document.getElementById('view_created').innerText = date.toLocaleString('en-PH', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
+                document.getElementById('view_created').innerText = new Date(data.created_at).toLocaleString('en-PH', {
+                    month: 'short', day: 'numeric', year: 'numeric',
+                    hour: 'numeric', minute: '2-digit', hour12: true
                 });
 
                 const pb = document.getElementById('view_priority_badge');
-                pb.innerText = data.priority;
-                pb.className = 'badge badge-' + data.priority.toLowerCase();
+                pb.innerText  = data.priority;
+                pb.className  = 'badge badge-' + data.priority.toLowerCase();
 
                 const sb = document.getElementById('view_status_badge');
                 sb.innerText = data.ticket_status;
-                sb.className = 'badge badge-' + data.ticket_status.toLowerCase().replace(' ', '');
+                sb.className = 'badge badge-' + data.ticket_status.toLowerCase().replace(/ /g, '');
+
+                // Resolution box
+                const resolutionBox = document.getElementById('view_resolution_box');
+                if (data.resolution_details) {
+                    document.getElementById('view_resolution_notes').innerText = data.resolution_details;
+                    document.getElementById('view_resolved_by').innerText = data.resolved_by_name ?? 'N/A';
+                    document.getElementById('view_resolved_at').innerText = data.resolved_at
+                        ? new Date(data.resolved_at).toLocaleString('en-PH', {
+                            month: 'short', day: 'numeric', year: 'numeric',
+                            hour: 'numeric', minute: '2-digit', hour12: true
+                          })
+                        : 'N/A';
+                    resolutionBox.style.display = 'block';
+                } else {
+                    resolutionBox.style.display = 'none';
+                }
+
+                // Closure box
+                const closureBox = document.getElementById('view_closure_box');
+                if (data.closed_by_name) {
+                    document.getElementById('view_closed_by').innerText = data.closed_by_name;
+                    document.getElementById('view_closed_at').innerText = data.closed_at
+                        ? new Date(data.closed_at).toLocaleString('en-PH', {
+                            month: 'short', day: 'numeric', year: 'numeric',
+                            hour: 'numeric', minute: '2-digit', hour12: true
+                          })
+                        : 'N/A';
+                    closureBox.style.display = 'block';
+                } else {
+                    closureBox.style.display = 'none';
+                }
 
                 document.getElementById('viewTicketModal').style.display = 'flex';
             });

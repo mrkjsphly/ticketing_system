@@ -190,16 +190,30 @@ class Tech extends MY_Controller
     {
         $this->db->select('tickets.*, clients.client_name, resolver.full_name as resolved_by_name, closer.full_name as closed_by_name')
             ->from('tickets')
-            ->join('clients', 'clients.id = tickets.client_id')
+            ->join('clients', 'clients.id = tickets.client_id', 'left')
             ->join('users as resolver', 'resolver.id = tickets.resolved_by', 'left')
             ->join('users as closer', 'closer.id = tickets.closed_by', 'left');
 
-        $role = $this->session->userdata('role');
-        if ($role === 'CSR') {
-            $this->db->where('tickets.created_by', $this->session->userdata('user_id'));
+        $ticket = $this->db->where('tickets.id', $id)->get()->row();
+
+        // Fallback: if resolved_by is null, look up from ticket_activities
+        if ($ticket && empty($ticket->resolved_by_name) && in_array($ticket->ticket_status, ['Resolved', 'For Closure', 'Closed'])) {
+            $activity = $this->db
+                ->select('users.full_name')
+                ->from('ticket_activities')
+                ->join('users', 'users.id = ticket_activities.performed_by', 'left')
+                ->where('ticket_activities.ticket_id', $ticket->id)
+                ->like('ticket_activities.activity', 'Status changed to Resolved')
+                ->order_by('ticket_activities.created_at', 'DESC')
+                ->limit(1)
+                ->get()
+                ->row();
+
+            if ($activity) {
+                $ticket->resolved_by_name = $activity->full_name;
+            }
         }
 
-        $ticket = $this->db->where('tickets.id', $id)->get()->row();
         echo json_encode($ticket);
     }
 
