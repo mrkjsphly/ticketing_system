@@ -9,7 +9,7 @@
 
         <select name="status">
             <option value="">All Status</option>
-            <?php foreach (['New', 'Endorsed', 'In Progress', 'Resolved', 'Cancelled'] as $s): ?>
+            <?php foreach (['New', 'Endorsed', 'In Progress', 'Resolved', 'For Closure', 'Closed', 'Cancelled'] as $s): ?>
                 <option value="<?= $s ?>" <?= $this->input->get('status') == $s ? 'selected' : '' ?>>
                     <?= $s ?>
                 </option>
@@ -93,6 +93,14 @@
                                         title="Cancel"
                                         onclick="return confirm('Are you sure you want to cancel this ticket?')">
                                         ✕
+                                    </a>
+                                <?php endif; ?>
+                                <?php if ($status === 'Resolved') : ?>
+                                    <a href="<?= site_url('tickets/confirm_closure/' . $ticket->id) ?>"
+                                        class="btn-icon btn-icon-closure"
+                                        title="Confirm Closure"
+                                        onclick="return confirm('Confirm closure of this ticket?')">
+                                        ✔
                                     </a>
                                 <?php endif; ?>
                             </div>
@@ -258,6 +266,29 @@
         <div class="ticket-description-box" id="view_resolution_box" style="display:none;">
             <span class="detail-label">Resolution Notes</span>
             <div id="view_resolution_notes" class="description-content"></div>
+            <div style="display:flex; gap:20px; margin-top:10px;">
+                <div>
+                    <span class="detail-label">Resolved By</span>
+                    <div class="detail-value" id="view_resolved_by"></div>
+                </div>
+                <div>
+                    <span class="detail-label">Resolved At</span>
+                    <div class="detail-value" id="view_resolved_at"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ticket-description-box" id="view_closure_box" style="display:none;">
+            <div style="display:flex; gap:20px;">
+                <div>
+                    <span class="detail-label">Closed By</span>
+                    <div class="detail-value" id="view_closed_by"></div>
+                </div>
+                <div>
+                    <span class="detail-label">Closed At</span>
+                    <div class="detail-value" id="view_closed_at"></div>
+                </div>
+            </div>
         </div>
 
         <div class="modal-actions">
@@ -343,9 +374,38 @@
                 const resolutionBox = document.getElementById('view_resolution_box');
                 if (data.resolution_details) {
                     document.getElementById('view_resolution_notes').innerText = data.resolution_details;
+                    document.getElementById('view_resolved_by').innerText = data.resolved_by_name ?? 'N/A';
+                    document.getElementById('view_resolved_at').innerText = data.resolved_at ?
+                        new Date(data.resolved_at).toLocaleString('en-PH', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        }) :
+                        'N/A';
                     resolutionBox.style.display = 'block';
                 } else {
                     resolutionBox.style.display = 'none';
+                }
+
+                const closureBox = document.getElementById('view_closure_box');
+                if (data.closed_by_name) {
+                    document.getElementById('view_closed_by').innerText = data.closed_by_name;
+                    document.getElementById('view_closed_at').innerText = data.closed_at ?
+                        new Date(data.closed_at).toLocaleString('en-PH', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        }) :
+                        'N/A';
+                    closureBox.style.display = 'block';
+                } else {
+                    closureBox.style.display = 'none';
                 }
 
                 document.getElementById('viewTicketModal').style.display = 'flex';

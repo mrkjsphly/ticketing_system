@@ -187,6 +187,25 @@ class Tickets extends MY_Controller
         }
 
         $ticket = $this->db->where('tickets.id', $id)->get()->row();
+
+        // Fallback: if resolved_by is null, look up from ticket_activities
+        if ($ticket && empty($ticket->resolved_by_name) && $ticket->ticket_status === 'Resolved') {
+            $activity = $this->db
+                ->select('users.full_name')
+                ->from('ticket_activities')
+                ->join('users', 'users.id = ticket_activities.performed_by', 'left')
+                ->where('ticket_activities.ticket_id', $ticket->id)
+                ->like('ticket_activities.activity', 'Status changed to Resolved')
+                ->order_by('ticket_activities.created_at', 'DESC')
+                ->limit(1)
+                ->get()
+                ->row();
+
+            if ($activity) {
+                $ticket->resolved_by_name = $activity->full_name;
+            }
+        }
+
         echo json_encode($ticket);
     }
 
@@ -273,5 +292,20 @@ class Tickets extends MY_Controller
         ]);
 
         echo json_encode(['success' => true]);
+    }
+
+    public function confirm_closure($id)
+    {
+        $this->db->where('id', $id)
+            ->where('created_by', $this->session->userdata('user_id'))
+            ->where('ticket_status', 'Resolved')
+            ->update('tickets', [
+                'ticket_status' => 'For Closure',
+                'updated_at'    => date('Y-m-d H:i:s')
+            ]);
+
+        $this->Ticket_model->log_activity($id, 'Ticket submitted for closure confirmation');
+
+        redirect('tickets');
     }
 }

@@ -447,7 +447,7 @@ body {
     display: flex;
     gap: 5px;
     align-items: center;
-    flex-wrap: nowrap;
+    flex-wrap: center;
 }
 
 /* ===== ICON BUTTONS ===== */
@@ -806,3 +806,18 @@ body {
 .priority-grid {
     grid-template-columns: repeat(4, 1fr);
 }
+
+.btn-icon-closure {
+    background: #e8f7ee;
+    color: #1f8f4e;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.btn-icon-closure:hover {
+    background: #1f8f4e;
+    color: #fff;
+}
+
+.badge-forclosure { background: #fff4e5; color: #c77700; }
+.badge-closed     { background: #f1f3f6; color: #6c757d; }

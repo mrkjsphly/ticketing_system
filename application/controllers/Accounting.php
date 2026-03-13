@@ -1,12 +1,12 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Tech extends MY_Controller
+class Accounting extends MY_Controller
 {
     public function __construct()
     {
         parent::__construct();
-        $this->require_role('TECH');
+        $this->require_role('ACCOUNTING');
         $this->load->model('Ticket_model');
         $this->load->model('Team_model');
     }
@@ -39,10 +39,10 @@ class Tech extends MY_Controller
         $data['full_name'] = $this->session->userdata('full_name');
         $data['role']      = $this->session->userdata('role');
 
-        $this->load->view('tech/layout/header', $data);
-        $this->load->view('tech/layout/sidebar', $data);
-        $this->load->view('tech/dashboard', $data);
-        $this->load->view('tech/layout/footer');
+        $this->load->view('accounting/layout/header', $data);
+        $this->load->view('accounting/layout/sidebar', $data);
+        $this->load->view('accounting/dashboard', $data);
+        $this->load->view('accounting/layout/footer');
     }
 
     public function tickets()
@@ -56,7 +56,7 @@ class Tech extends MY_Controller
         $status   = $this->input->get('status');
         $priority = $this->input->get('priority');
 
-        // Count query with filters
+        // Count query
         $this->db->from('tickets')
             ->join('clients', 'clients.id = tickets.client_id', 'left')
             ->where('tickets.assigned_team', $team_id);
@@ -72,36 +72,36 @@ class Tech extends MY_Controller
 
         $total_rows = $this->db->count_all_results();
 
-        $config['base_url']             = site_url('tech/tickets');
+        $config['base_url']             = site_url('accounting/tickets');
         $config['total_rows']           = $total_rows;
-        $config['per_page']             = 5;
+        $config['per_page']             = 10;
         $config['use_page_numbers']     = FALSE;
         $config['page_query_string']    = TRUE;
         $config['query_string_segment'] = 'page';
         $config['uri_segment']          = 0;
 
-        $config['full_tag_open']  = '<ul class="pagination">';
-        $config['full_tag_close'] = '</ul>';
-        $config['num_tag_open']   = '<li>';
-        $config['num_tag_close']  = '</li>';
-        $config['cur_tag_open']   = '<li class="active"><span>';
-        $config['cur_tag_close']  = '</span></li>';
-        $config['next_link']      = '&raquo;';
-        $config['next_tag_open']  = '<li>';
-        $config['next_tag_close'] = '</li>';
-        $config['prev_link']      = '&laquo;';
-        $config['prev_tag_open']  = '<li>';
-        $config['prev_tag_close'] = '</li>';
-        $config['last_link']      = 'Last';
-        $config['last_tag_open']  = '<li>';
-        $config['last_tag_close'] = '</li>';
-        $config['first_link']     = 'First';
-        $config['first_tag_open'] = '<li>';
+        $config['full_tag_open']   = '<ul class="pagination">';
+        $config['full_tag_close']  = '</ul>';
+        $config['num_tag_open']    = '<li>';
+        $config['num_tag_close']   = '</li>';
+        $config['cur_tag_open']    = '<li class="active"><span>';
+        $config['cur_tag_close']   = '</span></li>';
+        $config['next_link']       = '&raquo;';
+        $config['next_tag_open']   = '<li>';
+        $config['next_tag_close']  = '</li>';
+        $config['prev_link']       = '&laquo;';
+        $config['prev_tag_open']   = '<li>';
+        $config['prev_tag_close']  = '</li>';
+        $config['last_link']       = 'Last';
+        $config['last_tag_open']   = '<li>';
+        $config['last_tag_close']  = '</li>';
+        $config['first_link']      = 'First';
+        $config['first_tag_open']  = '<li>';
         $config['first_tag_close'] = '</li>';
 
         $this->pagination->initialize($config);
 
-        // Data query with filters
+        // Data query
         $this->db->select('tickets.*, clients.client_name')
             ->from('tickets')
             ->join('clients', 'clients.id = tickets.client_id', 'left')
@@ -126,17 +126,16 @@ class Tech extends MY_Controller
         $data['full_name']  = $this->session->userdata('full_name');
         $data['role']       = $this->session->userdata('role');
 
-        $this->load->view('tech/layout/header', $data);
-        $this->load->view('tech/layout/sidebar', $data);
-        $this->load->view('tech/tickets/index', $data);
-        $this->load->view('tech/layout/footer');
+        $this->load->view('accounting/layout/header', $data);
+        $this->load->view('accounting/layout/sidebar', $data);
+        $this->load->view('accounting/tickets/index', $data);
+        $this->load->view('accounting/layout/footer');
     }
 
     public function update_status($id)
     {
         $team_id = $this->session->userdata('team_id');
 
-        // Make sure ticket belongs to this team
         $ticket = $this->db->where('id', $id)
             ->where('assigned_team', $team_id)
             ->get('tickets')
@@ -183,23 +182,39 @@ class Tech extends MY_Controller
             'created_at' => date('Y-m-d H:i:s')
         ]);
 
-        redirect('tech/tickets');
+        redirect('accounting/tickets');
     }
 
     public function get_ticket($id)
     {
-        $this->db->select('tickets.*, clients.client_name, resolver.full_name as resolved_by_name, closer.full_name as closed_by_name')
-            ->from('tickets')
-            ->join('clients', 'clients.id = tickets.client_id')
-            ->join('users as resolver', 'resolver.id = tickets.resolved_by', 'left')
-            ->join('users as closer', 'closer.id = tickets.closed_by', 'left');
+        $team_id = $this->session->userdata('team_id');
 
-        $role = $this->session->userdata('role');
-        if ($role === 'CSR') {
-            $this->db->where('tickets.created_by', $this->session->userdata('user_id'));
-        }
+        $this->db->select('tickets.*, clients.client_name, resolver.full_name as resolved_by_name')
+            ->from('tickets')
+            ->join('clients', 'clients.id = tickets.client_id', 'left')
+            ->join('users as resolver', 'resolver.id = tickets.resolved_by', 'left')
+            ->where('tickets.assigned_team', $team_id);
 
         $ticket = $this->db->where('tickets.id', $id)->get()->row();
+
+        // Fallback: if resolved_by is null, look up from ticket_activities
+        if ($ticket && empty($ticket->resolved_by_name) && $ticket->ticket_status === 'Resolved') {
+            $activity = $this->db
+                ->select('users.full_name')
+                ->from('ticket_activities')
+                ->join('users', 'users.id = ticket_activities.performed_by', 'left')
+                ->where('ticket_activities.ticket_id', $ticket->id)
+                ->like('ticket_activities.activity', 'Status changed to Resolved')
+                ->order_by('ticket_activities.created_at', 'DESC')
+                ->limit(1)
+                ->get()
+                ->row();
+
+            if ($activity) {
+                $ticket->resolved_by_name = $activity->full_name;
+            }
+        }
+
         echo json_encode($ticket);
     }
 

@@ -24,7 +24,7 @@
         </select>
 
         <button type="submit" class="btn-primary">Search</button>
-        <a href="<?= site_url('tech/tickets') ?>" class="btn-secondary">Reset</a>
+        <a href="<?= site_url('accounting/tickets') ?>" class="btn-secondary">Reset</a>
     </form>
 </div>
 
@@ -136,6 +136,16 @@
         <div class="ticket-description-box" id="view_resolution_box" style="display:none;">
             <span class="detail-label">Resolution Notes</span>
             <div id="view_resolution_notes" class="description-content"></div>
+            <div style="display:flex; gap:20px; margin-top:10px;">
+                <div>
+                    <span class="detail-label">Resolved By</span>
+                    <div class="detail-value" id="view_resolved_by"></div>
+                </div>
+                <div>
+                    <span class="detail-label">Resolved At</span>
+                    <div class="detail-value" id="view_resolved_at"></div>
+                </div>
+            </div>
         </div>
 
         <div class="modal-actions">
@@ -181,26 +191,25 @@
 
 
 <script>
-    // View modal
     function openViewModal(ticket_id) {
-        fetch("<?= site_url('tech/get_ticket/') ?>" + ticket_id)
+        fetch("<?= site_url('accounting/get_ticket/') ?>" + ticket_id)
             .then(r => r.json())
             .then(data => {
                 document.getElementById('view_ticket_code').innerText = data.ticket_code;
-                document.getElementById('view_client').innerText = data.client_name;
-                document.getElementById('view_requester').innerText = data.requester_name;
-                document.getElementById('view_category').innerText = data.category;
+                document.getElementById('view_client').innerText      = data.client_name;
+                document.getElementById('view_requester').innerText   = data.requester_name;
+                document.getElementById('view_category').innerText    = data.category;
                 document.getElementById('view_description').innerText = data.description;
 
                 const date = new Date(data.created_at);
                 document.getElementById('view_created').innerText = date.toLocaleString('en-PH', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
+                    month: 'short', day: 'numeric', year: 'numeric',
+                    hour: 'numeric', minute: '2-digit', hour12: true
                 });
+
+                const pb = document.getElementById('view_priority_badge');
+                pb.innerText   = data.priority;
+                pb.className   = 'badge badge-' + data.priority.toLowerCase();
 
                 const sb = document.getElementById('view_status_badge');
                 sb.innerText = data.ticket_status;
@@ -209,6 +218,13 @@
                 const resolutionBox = document.getElementById('view_resolution_box');
                 if (data.resolution_details) {
                     document.getElementById('view_resolution_notes').innerText = data.resolution_details;
+                    document.getElementById('view_resolved_by').innerText = data.resolved_by_name ?? 'N/A';
+                    document.getElementById('view_resolved_at').innerText = data.resolved_at
+                        ? new Date(data.resolved_at).toLocaleString('en-PH', {
+                            month: 'short', day: 'numeric', year: 'numeric',
+                            hour: 'numeric', minute: '2-digit', hour12: true
+                          })
+                        : 'N/A';
                     resolutionBox.style.display = 'block';
                 } else {
                     resolutionBox.style.display = 'none';
@@ -222,17 +238,12 @@
         document.getElementById('viewTicketModal').style.display = 'none';
     }
 
-    // Status modal
     function openStatusModal(ticket_id, current_status) {
         document.getElementById('status_ticket_id').value = ticket_id;
-        document.getElementById('statusForm').action = "<?= site_url('tech/update_status/') ?>" + ticket_id;
+        document.getElementById('statusForm').action = "<?= site_url('accounting/update_status/') ?>" + ticket_id;
 
         const select = document.getElementById('status_select');
-        if (current_status === 'In Progress') {
-            select.value = 'Resolved';
-        } else {
-            select.value = 'In Progress';
-        }
+        select.value = current_status === 'In Progress' ? 'Resolved' : 'In Progress';
 
         toggleResolutionNotes();
         document.getElementById('statusModal').style.display = 'flex';
@@ -246,7 +257,7 @@
 
     function toggleResolutionNotes() {
         const status = document.getElementById('status_select').value;
-        const group = document.getElementById('resolution_notes_group');
+        const group  = document.getElementById('resolution_notes_group');
         group.style.display = status === 'Resolved' ? 'block' : 'none';
         document.getElementById('resolution_notes').required = status === 'Resolved';
     }
