@@ -41,8 +41,8 @@
         <div class="card-number"><?= $total_tickets ?></div>
     </div>
     <div class="card">
-        <h4>Open</h4>
-        <div class="card-number" style="color: #2b5fd9;"><?= $open_tickets ?></div>
+        <h4>New</h4>
+        <div class="card-number" style="color: #2b5fd9;"><?= $new ?></div>
     </div>
     <div class="card">
         <h4>Endorsed</h4>
@@ -55,6 +55,14 @@
     <div class="card">
         <h4>Resolved</h4>
         <div class="card-number" style="color: #1f8f4e;"><?= $resolved ?></div>
+    </div>
+    <div class="card">
+        <h4>For Closure</h4>
+        <div class="card-number" style="color: #c77700;"><?= $forclosure ?></div>
+    </div>
+    <div class="card">
+        <h4>Closed</h4>
+        <div class="card-number" style="color: #6c757d;"><?= $closed ?></div>
     </div>
     <div class="card">
         <h4>Cancelled</h4>

@@ -28,11 +28,13 @@ class Dashboard extends MY_Controller
 
         // ===== TICKET STATUS =====
         $data['total_tickets'] = $this->Ticket_model->count_all();
-        $data['open_tickets'] = $this->Ticket_model->count_open_tickets();
-        $data['endorsed']      = $this->Ticket_model->count_by_status('Endorsed');
-        $data['inprogress']    = $this->Ticket_model->count_by_status('In Progress');
-        $data['resolved']      = $this->Ticket_model->count_by_status('Resolved');
-        $data['cancelled']     = $this->Ticket_model->count_by_status('Cancelled');
+        $data['new']        = $this->Ticket_model->count_by_status('New');
+        $data['endorsed']   = $this->Ticket_model->count_by_status('Endorsed');
+        $data['inprogress'] = $this->Ticket_model->count_by_status('In Progress');
+        $data['resolved']   = $this->Ticket_model->count_by_status('Resolved');
+        $data['forclosure'] = $this->Ticket_model->count_by_status('For Closure');
+        $data['closed']     = $this->Ticket_model->count_by_status('Closed');
+        $data['cancelled']  = $this->Ticket_model->count_by_status('Cancelled');
 
         // ===== PRIORITY =====
         $data['high_priority']   = $this->Ticket_model->count_by_priority('High');
