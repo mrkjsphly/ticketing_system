@@ -7,7 +7,6 @@ class Tickets extends MY_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->require_roles(['CSR', 'TECH', 'ACCOUNTING']);
         $this->load->model('Ticket_model');
         $this->load->model('Team_model');
     }
@@ -153,7 +152,8 @@ class Tickets extends MY_Controller
         $role = $this->session->userdata('role');
 
         if (!in_array($role, ['TECH', 'ACCOUNTING'])) {
-            show_error('Unauthorized Access', 403);
+            redirect($this->session->userdata('role') === 'CSR' ? 'tickets' : 'auth/login');
+            exit;
         }
 
         $status = $this->input->post('ticket_status');

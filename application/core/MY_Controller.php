@@ -1,7 +1,8 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class MY_Controller extends CI_Controller {
+class MY_Controller extends CI_Controller
+{
 
     public function __construct()
     {
@@ -20,7 +21,7 @@ class MY_Controller extends CI_Controller {
     protected function require_role($role)
     {
         if ($this->session->userdata('role') !== $role) {
-            show_error('Unauthorized Access', 403);
+            $this->_redirect_to_dashboard();
         }
     }
 
@@ -29,8 +30,23 @@ class MY_Controller extends CI_Controller {
         $user_role = $this->session->userdata('role');
 
         if (!$user_role || !in_array($user_role, $roles)) {
-            show_error('Unauthorized Access', 403);
+            $this->_redirect_to_dashboard();
         }
     }
 
+    protected function _redirect_to_dashboard()
+    {
+        $role = $this->session->userdata('role');
+
+        $dashboards = [
+            'SUPERADMIN' => 'admin/dashboard',
+            'CSR'        => 'csr/dashboard',
+            'TECH'       => 'tech/dashboard',
+            'ACCOUNTING' => 'accounting/dashboard',
+            'TL'         => 'tl/dashboard',
+        ];
+
+        $url = isset($dashboards[$role]) ? $dashboards[$role] : 'auth/login';
+        redirect($url);
+    }
 }

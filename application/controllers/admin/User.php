@@ -1,18 +1,27 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class User extends MY_Controller
+require_once(APPPATH . 'controllers/admin/Admin_Controller.php');
+
+class Dashboard extends Admin_Controller
 {
 
     public function __construct()
     {
         parent::__construct();
 
-        $this->require_role('SUPERADMIN');
-
-        $this->load->model('User_model');
-        $this->load->model('Activity_log_model');
-        $this->load->model('Team_model');
+        if ($this->session->userdata('role') !== 'SUPERADMIN') {
+            $role = $this->session->userdata('role');
+            $dashboards = [
+                'CSR'        => 'csr/dashboard',
+                'TECH'       => 'tech/dashboard',
+                'ACCOUNTING' => 'accounting/dashboard',
+                'TL'         => 'tl/dashboard',
+            ];
+            $url = isset($dashboards[$role]) ? $dashboards[$role] : 'auth/login';
+            header('Location: ' . base_url($url));
+            exit;
+        }
     }
 
     public function index()

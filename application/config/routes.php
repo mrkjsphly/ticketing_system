@@ -74,3 +74,6 @@ $route['tl/tickets']               = 'tl/tickets';
 $route['tl/get_ticket/(:num)']     = 'tl/get_ticket/$1';
 $route['tl/close_ticket/(:num)']   = 'tl/close_ticket/$1';
 $route['tl/reassign/(:num)']       = 'tl/reassign/$1';
+$route['admin/dashboard'] = 'admin/dashboard/index';
+$route['admin/user']      = 'admin/user/index';
+$route['admin/activity_logs'] = 'admin/activity_logs/index';

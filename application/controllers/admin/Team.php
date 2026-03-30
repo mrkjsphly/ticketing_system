@@ -1,13 +1,27 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Team extends MY_Controller {
+require_once(APPPATH . 'controllers/admin/Admin_Controller.php');
+
+class Dashboard extends Admin_Controller
+{
 
     public function __construct()
     {
         parent::__construct();
-        $this->require_role('SUPERADMIN');
-        $this->load->model('Team_model');
+
+        if ($this->session->userdata('role') !== 'SUPERADMIN') {
+            $role = $this->session->userdata('role');
+            $dashboards = [
+                'CSR'        => 'csr/dashboard',
+                'TECH'       => 'tech/dashboard',
+                'ACCOUNTING' => 'accounting/dashboard',
+                'TL'         => 'tl/dashboard',
+            ];
+            $url = isset($dashboards[$role]) ? $dashboards[$role] : 'auth/login';
+            header('Location: ' . base_url($url));
+            exit;
+        }
     }
 
     public function store()
@@ -20,9 +34,9 @@ class Team extends MY_Controller {
 
         // Prevent duplicates
         $exists = $this->db
-                       ->where('team_name', $team_name)
-                       ->get('teams')
-                       ->row();
+            ->where('team_name', $team_name)
+            ->get('teams')
+            ->row();
 
         if ($exists) {
             $this->session->set_flashdata('error', 'Team already exists.');
