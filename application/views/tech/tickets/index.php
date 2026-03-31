@@ -1,6 +1,13 @@
 <h2 class="page-title">Assigned Tickets</h2>
 
+<?php $success = $this->session->flashdata('success'); ?>
+<?php if ($success): ?>
+    <p style="color: #1f8f4e; margin-bottom: 15px;"><?= $success ?></p>
+<?php endif; ?>
+
 <div class="table-controls">
+    <button class="btn-primary" onclick="openCreateTicketModal()">+ Create Ticket</button>
+
     <form method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0;">
         <input type="text" name="search" placeholder="Search ticket code or requester..."
             value="<?= htmlspecialchars($this->input->get('search') ?? '') ?>" style="width: 260px;">
@@ -73,6 +80,11 @@
                                         onclick="openStatusModal(<?= $ticket->id ?>, '<?= $ticket->ticket_status ?>')">
                                         ✏️
                                     </button>
+                                    <a href="<?= site_url('tech/return_ticket/' . $ticket->id) ?>"
+                                        class="btn-icon btn-icon-cancel" title="Return to CSR"
+                                        onclick="return confirm('Return this ticket to CSR?')">
+                                        ↩
+                                    </a>
                                 <?php endif; ?>
                             </div>
                         </td>
@@ -91,6 +103,96 @@
 
 <div class="pagination-wrapper">
     <?= $pagination ?>
+</div>
+
+
+<!-- CREATE TICKET MODAL -->
+<div id="createTicketModal" class="modal-overlay">
+    <div class="modal-box ticket-modal">
+        <h3>Create Ticket</h3>
+
+        <form method="post" action="<?= site_url('tech/store') ?>">
+
+            <div class="ticket-grid">
+                <div class="form-group">
+                    <label>Requester</label>
+                    <input type="text" name="requester_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Contact Info</label>
+                    <input type="text" name="contact_info">
+                </div>
+
+                <div class="form-group">
+                    <label>Client</label>
+                    <select name="client_id" required>
+                        <option value="">Select Client</option>
+                        <?php foreach ($clients as $client): ?>
+                            <option value="<?= $client->id ?>"><?= $client->client_name ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="POS">POS</option>
+                        <option value="Platform">Platform</option>
+                        <option value="Server">Server</option>
+                        <option value="Billing">Billing</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select name="priority">
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                        <option>Critical</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Type</label>
+                    <select name="ticket_type">
+                        <option>Issue</option>
+                        <option>Request</option>
+                        <option>Account Creation</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Channel</label>
+                    <select name="channel">
+                        <option>Viber</option>
+                        <option>Messenger</option>
+                        <option>Email</option>
+                        <option>Call</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" name="subject">
+                </div>
+            </div>
+
+            <div class="form-group description-group">
+                <label>Description</label>
+                <textarea name="description"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeCreateTicketModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Create Ticket</button>
+            </div>
+
+        </form>
+    </div>
 </div>
 
 
@@ -136,6 +238,16 @@
         <div class="ticket-description-box" id="view_resolution_box" style="display:none;">
             <span class="detail-label">Resolution Notes</span>
             <div id="view_resolution_notes" class="description-content"></div>
+            <div style="display:flex; gap:20px; margin-top:10px;">
+                <div>
+                    <span class="detail-label">Resolved By</span>
+                    <div class="detail-value" id="view_resolved_by"></div>
+                </div>
+                <div>
+                    <span class="detail-label">Resolved At</span>
+                    <div class="detail-value" id="view_resolved_at"></div>
+                </div>
+            </div>
         </div>
 
         <div class="modal-actions">
@@ -165,6 +277,13 @@
                 </select>
             </div>
 
+            <div class="form-group" id="status_comment_group" style="display: none;">
+                <label>Progress Comment <span style="color: #6c757d; font-size:11px;">(optional)</span></label>
+                <textarea name="status_comment" id="status_comment"
+                    style="width:100%; height:80px; resize:none; padding:8px; border:1px solid #e3e6f0; border-radius:4px; font-size:13px; font-family:inherit; box-sizing:border-box;"
+                    placeholder="What are you currently working on?"></textarea>
+            </div>
+
             <div class="form-group" id="resolution_notes_group" style="display: none;">
                 <label>Resolution Notes <span style="color: #d93025;">*</span></label>
                 <textarea name="resolution_notes" id="resolution_notes"
@@ -181,7 +300,14 @@
 
 
 <script>
-    // View modal
+    function openCreateTicketModal() {
+        document.getElementById('createTicketModal').style.display = 'flex';
+    }
+
+    function closeCreateTicketModal() {
+        document.getElementById('createTicketModal').style.display = 'none';
+    }
+
     function openViewModal(ticket_id) {
         fetch("<?= site_url('tech/get_ticket/') ?>" + ticket_id)
             .then(r => r.json())
@@ -192,8 +318,7 @@
                 document.getElementById('view_category').innerText = data.category;
                 document.getElementById('view_description').innerText = data.description;
 
-                const date = new Date(data.created_at);
-                document.getElementById('view_created').innerText = date.toLocaleString('en-PH', {
+                document.getElementById('view_created').innerText = new Date(data.created_at).toLocaleString('en-PH', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
@@ -202,6 +327,10 @@
                     hour12: true
                 });
 
+                const pb = document.getElementById('view_priority_badge');
+                pb.innerText = data.priority;
+                pb.className = 'badge badge-' + data.priority.toLowerCase();
+
                 const sb = document.getElementById('view_status_badge');
                 sb.innerText = data.ticket_status;
                 sb.className = 'badge badge-' + data.ticket_status.toLowerCase().replace(/ /g, '');
@@ -209,6 +338,17 @@
                 const resolutionBox = document.getElementById('view_resolution_box');
                 if (data.resolution_details) {
                     document.getElementById('view_resolution_notes').innerText = data.resolution_details;
+                    document.getElementById('view_resolved_by').innerText = data.resolved_by_name ?? 'N/A';
+                    document.getElementById('view_resolved_at').innerText = data.resolved_at ?
+                        new Date(data.resolved_at).toLocaleString('en-PH', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        }) :
+                        'N/A';
                     resolutionBox.style.display = 'block';
                 } else {
                     resolutionBox.style.display = 'none';
@@ -222,17 +362,12 @@
         document.getElementById('viewTicketModal').style.display = 'none';
     }
 
-    // Status modal
     function openStatusModal(ticket_id, current_status) {
         document.getElementById('status_ticket_id').value = ticket_id;
         document.getElementById('statusForm').action = "<?= site_url('tech/update_status/') ?>" + ticket_id;
 
         const select = document.getElementById('status_select');
-        if (current_status === 'In Progress') {
-            select.value = 'Resolved';
-        } else {
-            select.value = 'In Progress';
-        }
+        select.value = current_status === 'In Progress' ? 'Resolved' : 'In Progress';
 
         toggleResolutionNotes();
         document.getElementById('statusModal').style.display = 'flex';
@@ -249,5 +384,8 @@
         const group = document.getElementById('resolution_notes_group');
         group.style.display = status === 'Resolved' ? 'block' : 'none';
         document.getElementById('resolution_notes').required = status === 'Resolved';
+
+        const commentGroup = document.getElementById('status_comment_group');
+        commentGroup.style.display = status === 'In Progress' ? 'block' : 'none';
     }
 </script>

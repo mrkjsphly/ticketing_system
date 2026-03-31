@@ -3,7 +3,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require_once(APPPATH . 'controllers/admin/Admin_Controller.php');
 
-class Dashboard extends Admin_Controller
+class Team extends Admin_Controller
 {
 
     public function __construct()

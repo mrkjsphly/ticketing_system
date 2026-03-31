@@ -3,11 +3,14 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require_once(APPPATH . 'controllers/admin/Admin_Controller.php');
 
-class Dashboard extends Admin_Controller
+class Teams extends Admin_Controller
 {
     public function __construct()
     {
         parent::__construct();
+
+        $this->load->model('Team_model');
+        $this->load->model('Activity_log_model');
 
         if ($this->session->userdata('role') !== 'SUPERADMIN') {
             $role = $this->session->userdata('role');
@@ -102,7 +105,6 @@ class Dashboard extends Admin_Controller
         $team = $this->db->get_where('teams', ['id' => $id])->row();
         if (!$team) show_404();
 
-        // Check if tickets are assigned to this team
         $ticket_count = $this->db
             ->where('assigned_team', $id)
             ->count_all_results('tickets');
@@ -113,9 +115,7 @@ class Dashboard extends Admin_Controller
             return;
         }
 
-        // Unassign users from this team
         $this->db->where('team_id', $id)->update('users', ['team_id' => null]);
-
         $this->db->where('id', $id)->delete('teams');
 
         $this->Activity_log_model->log(

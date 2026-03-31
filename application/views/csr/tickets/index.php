@@ -38,6 +38,7 @@
                 <th>Ticket Code</th>
                 <th>Client</th>
                 <th>Requester</th>
+                <th>Subject</th>
                 <th>Category</th>
                 <th>Priority</th>
                 <th>Status</th>
@@ -61,6 +62,8 @@
                         <td><?= $ticket->client_name ?></td>
 
                         <td><?= $ticket->requester_name ?></td>
+
+                        <td><?= $ticket->subject ? htmlspecialchars($ticket->subject) : '—' ?></td>
 
                         <td><?= $ticket->category ?></td>
 
@@ -101,6 +104,14 @@
                                         title="Confirm Closure"
                                         onclick="return confirm('Confirm closure of this ticket?')">
                                         ✔
+                                    </a>
+                                <?php endif; ?>
+                                <?php if ($status === 'For Closure') : ?>
+                                    <a href="<?= site_url('tickets/close_ticket/' . $ticket->id) ?>"
+                                        class="btn-icon btn-icon-closure"
+                                        title="Close Ticket"
+                                        onclick="return confirm('Are you sure you want to close this ticket?')">
+                                        🔒
                                     </a>
                                 <?php endif; ?>
                             </div>
@@ -263,6 +274,11 @@
             <div id="view_description" class="description-content"></div>
         </div>
 
+        <div class="ticket-description-box" id="view_progress_box" style="display:none;">
+            <span class="detail-label">Latest Progress Update</span>
+            <div id="view_progress_comment" class="description-content"></div>
+        </div>
+
         <div class="ticket-description-box" id="view_resolution_box" style="display:none;">
             <span class="detail-label">Resolution Notes</span>
             <div id="view_resolution_notes" class="description-content"></div>
@@ -370,6 +386,15 @@
                 const statusBadge = document.getElementById('view_status_badge');
                 statusBadge.innerText = data.ticket_status;
                 statusBadge.className = 'badge badge-' + data.ticket_status.toLowerCase().replace(' ', '');
+
+                // Progress comment
+                const progressBox = document.getElementById('view_progress_box');
+                if (data.progress_comment) {
+                    document.getElementById('view_progress_comment').innerText = data.progress_comment;
+                    progressBox.style.display = 'block';
+                } else {
+                    progressBox.style.display = 'none';
+                }
 
                 const resolutionBox = document.getElementById('view_resolution_box');
                 if (data.resolution_details) {

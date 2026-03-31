@@ -208,6 +208,19 @@ class Tickets extends MY_Controller
             }
         }
 
+        // Fetch latest progress update
+        $progress = $this->db
+            ->select('activity')
+            ->from('ticket_activities')
+            ->where('ticket_id', $id)
+            ->like('activity', 'Progress update:')
+            ->order_by('created_at', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row();
+
+        $ticket->progress_comment = $progress ? str_replace('Progress update: ', '', $progress->activity) : null;
+
         echo json_encode($ticket);
     }
 
@@ -308,6 +321,38 @@ class Tickets extends MY_Controller
 
         $this->Ticket_model->log_activity($id, 'Ticket submitted for closure confirmation');
 
+        redirect('tickets');
+    }
+
+    public function close_ticket($id)
+    {
+        $ticket = $this->db->where('id', $id)
+            ->where('created_by', $this->session->userdata('user_id'))
+            ->where('ticket_status', 'For Closure')
+            ->get('tickets')
+            ->row();
+
+        if (!$ticket) {
+            $this->_redirect_to_dashboard();
+            exit;
+        }
+
+        $this->db->where('id', $id)->update('tickets', [
+            'ticket_status' => 'Closed',
+            'closed_by'     => $this->session->userdata('user_id'),
+            'closed_at'     => date('Y-m-d H:i:s'),
+            'updated_at'    => date('Y-m-d H:i:s')
+        ]);
+
+        $this->Ticket_model->log_activity($id, 'Ticket closed by CSR');
+
+        $this->db->insert('activity_logs', [
+            'user_id'    => $this->session->userdata('user_id'),
+            'action'     => 'Closed ticket #' . $id,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->session->set_flashdata('success', 'Ticket successfully closed.');
         redirect('tickets');
     }
 }

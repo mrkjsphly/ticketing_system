@@ -11,30 +11,24 @@ $success = $this->session->flashdata('success');
 <!-- TABS -->
 <div style="display:flex; gap:0; margin-bottom: 20px; border-bottom: 2px solid #e3e6f0;">
     <a href="<?= site_url('admin/activity_logs') ?>"
-        style="padding: 10px 20px; font-weight:600; color:#2b5fd9; border-bottom: 2px solid #2b5fd9; margin-bottom:-2px; text-decoration:none;">
+        style="padding: 10px 20px; font-weight:600; color:#6c757d; text-decoration:none;">
         System Logs
     </a>
     <a href="<?= site_url('admin/activity_logs/user_logs') ?>"
-        style="padding: 10px 20px; font-weight:600; color:#6c757d; text-decoration:none;">
+        style="padding: 10px 20px; font-weight:600; color:#2b5fd9; border-bottom: 2px solid #2b5fd9; margin-bottom:-2px; text-decoration:none;">
         User Logs
     </a>
 </div>
 
 <!-- FILTERS -->
 <div class="table-controls">
-    <form method="get" action="<?= site_url('admin/activity_logs') ?>" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0;">
-        <input type="text" name="search" placeholder="Search action or user..."
-            value="<?= htmlspecialchars($this->input->get('search') ?? '') ?>" style="width:220px;">
+    <form method="get" action="<?= site_url('admin/activity_logs/user_logs') ?>" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0;">
+        <input type="text" name="search" placeholder="Search activity, ticket or user..."
+            value="<?= htmlspecialchars($this->input->get('search') ?? '') ?>" style="width:260px;">
         <input type="date" name="date_from" value="<?= htmlspecialchars($date_from) ?>">
-        <input type="date" name="date_to" value="<?= htmlspecialchars($date_to) ?>">
+        <input type="date" name="date_to"   value="<?= htmlspecialchars($date_to) ?>">
         <button type="submit" class="btn-primary">Filter</button>
-        <a href="<?= site_url('admin/activity_logs') ?>" class="btn-secondary">Reset</a>
-        <a href="<?= site_url('admin/activity_logs/clear_all') ?>"
-            class="btn-table toggle"
-            onclick="return confirm('Are you sure you want to clear ALL system logs? This cannot be undone.')"
-            style="margin-left:auto;">
-            Clear All
-        </a>
+        <a href="<?= site_url('admin/activity_logs/user_logs') ?>" class="btn-secondary">Reset</a>
     </form>
 </div>
 
@@ -42,7 +36,8 @@ $success = $this->session->flashdata('success');
     <thead>
         <tr>
             <th>User</th>
-            <th>Action</th>
+            <th>Ticket</th>
+            <th>Activity</th>
             <th>Date</th>
             <th>Action</th>
         </tr>
@@ -51,11 +46,12 @@ $success = $this->session->flashdata('success');
         <?php if (!empty($logs)): ?>
             <?php foreach ($logs as $log): ?>
                 <tr>
-                    <td><span class="role-badge"><?= htmlspecialchars($log->full_name) ?></span></td>
-                    <td><?= htmlspecialchars($log->action) ?></td>
+                    <td><span class="role-badge"><?= htmlspecialchars($log->full_name ?? 'System') ?></span></td>
+                    <td><?= htmlspecialchars($log->ticket_code ?? 'N/A') ?></td>
+                    <td><?= htmlspecialchars($log->activity) ?></td>
                     <td><?= date('M d, Y h:i A', strtotime($log->created_at)) ?></td>
                     <td>
-                        <a href="<?= site_url('admin/activity_logs/delete/' . $log->id) ?>"
+                        <a href="<?= site_url('admin/activity_logs/delete_user_log/' . $log->id) ?>"
                             class="btn-table toggle"
                             onclick="return confirm('Delete this log entry?')">
                             Delete
@@ -65,8 +61,8 @@ $success = $this->session->flashdata('success');
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="4" style="text-align:center; color:#6c757d; padding:30px;">
-                    No activity found.
+                <td colspan="5" style="text-align:center; color:#6c757d; padding:30px;">
+                    No user activity found.
                 </td>
             </tr>
         <?php endif; ?>

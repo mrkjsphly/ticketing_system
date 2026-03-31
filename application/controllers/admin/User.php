@@ -3,12 +3,16 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 require_once(APPPATH . 'controllers/admin/Admin_Controller.php');
 
-class Dashboard extends Admin_Controller
+class User extends Admin_Controller
 {
 
     public function __construct()
     {
         parent::__construct();
+
+        $this->load->model('User_model');
+        $this->load->model('Team_model');
+        $this->load->model('Activity_log_model');
 
         if ($this->session->userdata('role') !== 'SUPERADMIN') {
             $role = $this->session->userdata('role');
@@ -35,7 +39,6 @@ class Dashboard extends Admin_Controller
         $date_from = $this->input->get('date_from');
         $date_to   = $this->input->get('date_to');
 
-        // Build base URL that keeps filters when you change pages
         $base_url = site_url('admin/user/index')
             . '?search=' . urlencode($search)
             . '&role=' . urlencode($role)
@@ -49,60 +52,39 @@ class Dashboard extends Admin_Controller
         $page     = (int) $this->input->get('page') ?: 0;
 
         $total = $this->User_model->count_filtered_users(
-            $search,
-            $role,
-            $status,
-            $team,
-            $date_from,
-            $date_to
+            $search, $role, $status, $team, $date_from, $date_to
         );
 
-        // Pagination config — same style as Activity Logs
         $config['base_url']             = $base_url;
         $config['total_rows']           = $total;
         $config['per_page']             = $per_page;
         $config['page_query_string']    = TRUE;
         $config['query_string_segment'] = 'page';
 
-        $config['full_tag_open']  = '<ul class="pagination">';
-        $config['full_tag_close'] = '</ul>';
-
-        $config['first_link'] = 'First';
-        $config['last_link']  = 'Last';
-        $config['prev_link']  = '&laquo;';
-        $config['next_link']  = '&raquo;';
-
-        $config['first_tag_open']  = '<li>';
-        $config['first_tag_close'] = '</li>';
-        $config['last_tag_open']   = '<li>';
-        $config['last_tag_close']  = '</li>';
-        $config['prev_tag_open']   = '<li>';
-        $config['prev_tag_close']  = '</li>';
-        $config['next_tag_open']   = '<li>';
-        $config['next_tag_close']  = '</li>';
-        $config['num_tag_open']    = '<li>';
-        $config['num_tag_close']   = '</li>';
+        $config['full_tag_open']   = '<ul class="pagination">';
+        $config['full_tag_close']  = '</ul>';
+        $config['first_link']      = 'First';
+        $config['last_link']       = 'Last';
+        $config['prev_link']       = '&laquo;';
+        $config['next_link']       = '&raquo;';
+        $config['first_tag_open']  = '<li>'; $config['first_tag_close'] = '</li>';
+        $config['last_tag_open']   = '<li>'; $config['last_tag_close']  = '</li>';
+        $config['prev_tag_open']   = '<li>'; $config['prev_tag_close']  = '</li>';
+        $config['next_tag_open']   = '<li>'; $config['next_tag_close']  = '</li>';
+        $config['num_tag_open']    = '<li>'; $config['num_tag_close']   = '</li>';
         $config['cur_tag_open']    = '<li class="active"><span>';
         $config['cur_tag_close']   = '</span></li>';
 
         $this->pagination->initialize($config);
 
         $data['users'] = $this->User_model->get_filtered_users_paginated(
-            $per_page,
-            $page,
-            $search,
-            $role,
-            $status,
-            $team,
-            $date_from,
-            $date_to
+            $per_page, $page, $search, $role, $status, $team, $date_from, $date_to
         );
 
         $data['pagination'] = $this->pagination->create_links();
         $data['teams']      = $this->Team_model->get_all_teams();
-
-        $data['full_name'] = $this->session->userdata('full_name');
-        $data['role']      = $this->session->userdata('role');
+        $data['full_name']  = $this->session->userdata('full_name');
+        $data['role']       = $this->session->userdata('role');
 
         $this->load->view('admin/layout/header', $data);
         $this->load->view('admin/layout/sidebar', $data);
@@ -146,9 +128,7 @@ class Dashboard extends Admin_Controller
         $team_name = 'Unassigned';
         if (!empty($team_id)) {
             $team = $this->Team_model->get_team($team_id);
-            if ($team) {
-                $team_name = $team->team_name;
-            }
+            if ($team) $team_name = $team->team_name;
         }
 
         $this->Activity_log_model->log(
@@ -165,7 +145,6 @@ class Dashboard extends Admin_Controller
         $user = $this->User_model->get_user($id);
         if (!$user) show_404();
 
-        // Capture OLD values BEFORE updating
         $old_role = $user->role;
         $old_team = $user->team_id;
         $old_name = $user->full_name;
@@ -185,10 +164,7 @@ class Dashboard extends Admin_Controller
             show_error('Cannot downgrade SUPERADMIN.', 403);
         }
 
-        if (
-            $user->id == $this->session->userdata('user_id')
-            && $this->session->userdata('role') !== $role
-        ) {
+        if ($user->id == $this->session->userdata('user_id') && $this->session->userdata('role') !== $role) {
             show_error('You cannot change your own role.', 403);
         }
 
@@ -204,7 +180,6 @@ class Dashboard extends Admin_Controller
 
         $this->User_model->update_user($id, $update_data);
 
-        // Prepare readable team names
         $new_team_name = 'Unassigned';
         $old_team_name = 'Unassigned';
 
@@ -219,23 +194,10 @@ class Dashboard extends Admin_Controller
         }
 
         $changes = [];
-
-        if ($old_name !== $full_name) {
-            $changes[] = "Name: {$old_name} → {$full_name}";
-        }
-
-
-        if ($old_role !== $role) {
-            $changes[] = "Role: {$old_role} → {$role}";
-        }
-
-        if ($old_team != $team_id) {
-            $changes[] = "Team: {$old_team_name} → {$new_team_name}";
-        }
-
-        if (!empty($new_password)) {
-            $changes[] = "Password updated by " . $this->session->userdata('role');
-        }
+        if ($old_name !== $full_name)  $changes[] = "Name: {$old_name} → {$full_name}";
+        if ($old_role !== $role)       $changes[] = "Role: {$old_role} → {$role}";
+        if ($old_team != $team_id)     $changes[] = "Team: {$old_team_name} → {$new_team_name}";
+        if (!empty($new_password))     $changes[] = "Password updated by " . $this->session->userdata('role');
 
         $change_text = !empty($changes) ? implode(', ', $changes) : "No major changes";
 
@@ -262,11 +224,9 @@ class Dashboard extends Admin_Controller
         }
 
         $new_status = $user->is_active ? 0 : 1;
-
         $this->User_model->update_user($id, ['is_active' => $new_status]);
 
         $action = $new_status ? "Enabled" : "Disabled";
-
         $this->Activity_log_model->log(
             $this->session->userdata('user_id'),
             "{$action} user: {$user->full_name} ({$user->role})"
@@ -285,11 +245,6 @@ class Dashboard extends Admin_Controller
         }
 
         $existing = $this->User_model->get_by_username($username);
-
-        if ($existing) {
-            echo json_encode(['status' => 'taken']);
-        } else {
-            echo json_encode(['status' => 'available']);
-        }
+        echo json_encode(['status' => $existing ? 'taken' : 'available']);
     }
 }

@@ -45,6 +45,13 @@ class Auth extends CI_Controller
                 'logged_in' => TRUE
             ]);
 
+            // Log login
+            $this->db->insert('activity_logs', [
+                'user_id'    => $user->id,
+                'action'     => $user->full_name . ' logged in',
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
             // 🔥 Redirect based on role
             $this->_redirect_by_role($user->role);
         } else {
@@ -55,6 +62,17 @@ class Auth extends CI_Controller
 
     public function logout()
     {
+        $user_id   = $this->session->userdata('user_id');
+        $full_name = $this->session->userdata('full_name');
+
+        if ($user_id) {
+            $this->db->insert('activity_logs', [
+                'user_id'    => $user_id,
+                'action'     => $full_name . ' logged out',
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+
         $this->session->sess_destroy();
         redirect('auth/login');
     }

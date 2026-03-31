@@ -9,6 +9,7 @@ class Tech extends MY_Controller
         $this->require_role('TECH');
         $this->load->model('Ticket_model');
         $this->load->model('Team_model');
+        $this->load->model('Client_model');
     }
 
     public function dashboard()
@@ -48,7 +49,6 @@ class Tech extends MY_Controller
     public function tickets()
     {
         $this->load->library('pagination');
-        $this->load->model('Client_model');
 
         $team_id  = $this->session->userdata('team_id');
         $page     = ($this->input->get('page')) ? (int) $this->input->get('page') : 0;
@@ -80,23 +80,23 @@ class Tech extends MY_Controller
         $config['query_string_segment'] = 'page';
         $config['uri_segment']          = 0;
 
-        $config['full_tag_open']  = '<ul class="pagination">';
-        $config['full_tag_close'] = '</ul>';
-        $config['num_tag_open']   = '<li>';
-        $config['num_tag_close']  = '</li>';
-        $config['cur_tag_open']   = '<li class="active"><span>';
-        $config['cur_tag_close']  = '</span></li>';
-        $config['next_link']      = '&raquo;';
-        $config['next_tag_open']  = '<li>';
-        $config['next_tag_close'] = '</li>';
-        $config['prev_link']      = '&laquo;';
-        $config['prev_tag_open']  = '<li>';
-        $config['prev_tag_close'] = '</li>';
-        $config['last_link']      = 'Last';
-        $config['last_tag_open']  = '<li>';
-        $config['last_tag_close'] = '</li>';
-        $config['first_link']     = 'First';
-        $config['first_tag_open'] = '<li>';
+        $config['full_tag_open']   = '<ul class="pagination">';
+        $config['full_tag_close']  = '</ul>';
+        $config['num_tag_open']    = '<li>';
+        $config['num_tag_close']   = '</li>';
+        $config['cur_tag_open']    = '<li class="active"><span>';
+        $config['cur_tag_close']   = '</span></li>';
+        $config['next_link']       = '&raquo;';
+        $config['next_tag_open']   = '<li>';
+        $config['next_tag_close']  = '</li>';
+        $config['prev_link']       = '&laquo;';
+        $config['prev_tag_open']   = '<li>';
+        $config['prev_tag_close']  = '</li>';
+        $config['last_link']       = 'Last';
+        $config['last_tag_open']   = '<li>';
+        $config['last_tag_close']  = '</li>';
+        $config['first_link']      = 'First';
+        $config['first_tag_open']  = '<li>';
         $config['first_tag_close'] = '</li>';
 
         $this->pagination->initialize($config);
@@ -116,13 +116,14 @@ class Tech extends MY_Controller
         if ($status)   $this->db->where('tickets.ticket_status', $status);
         if ($priority) $this->db->where('tickets.priority', $priority);
 
-        $data['tickets'] = $this->db
+        $data['tickets']    = $this->db
             ->order_by('tickets.created_at', 'DESC')
             ->limit($config['per_page'], $page)
             ->get()
             ->result();
 
         $data['pagination'] = $this->pagination->create_links();
+        $data['clients']    = $this->Client_model->get_all_clients();
         $data['full_name']  = $this->session->userdata('full_name');
         $data['role']       = $this->session->userdata('role');
 
@@ -132,25 +133,62 @@ class Tech extends MY_Controller
         $this->load->view('tech/layout/footer');
     }
 
+    public function store()
+    {
+        $team_id  = $this->session->userdata('team_id');
+        $category = $this->input->post('category');
+
+        $ticket_data = [
+            'ticket_code'    => 'TKT-' . date('Ymd-His'),
+            'requester_name' => $this->input->post('requester_name'),
+            'contact_info'   => $this->input->post('contact_info'),
+            'client_id'      => $this->input->post('client_id'),
+            'category'       => $category,
+            'priority'       => $this->input->post('priority'),
+            'ticket_type'    => $this->input->post('ticket_type'),
+            'channel'        => $this->input->post('channel'),
+            'subject'        => $this->input->post('subject'),
+            'description'    => $this->input->post('description'),
+            'ticket_status'  => 'In Progress',
+            'assigned_team'  => $team_id,
+            'created_by'     => $this->session->userdata('user_id'),
+            'created_at'     => date('Y-m-d H:i:s')
+        ];
+
+        $this->Ticket_model->create_ticket($ticket_data);
+        $ticket_id = $this->db->insert_id();
+
+        $this->Ticket_model->log_activity($ticket_id, 'Ticket created by TECH');
+
+        $this->db->insert('activity_logs', [
+            'user_id'    => $this->session->userdata('user_id'),
+            'action'     => 'Created ticket ' . $ticket_data['ticket_code'],
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        redirect('tech/tickets');
+    }
+
     public function update_status($id)
     {
         $team_id = $this->session->userdata('team_id');
 
-        // Make sure ticket belongs to this team
         $ticket = $this->db->where('id', $id)
             ->where('assigned_team', $team_id)
             ->get('tickets')
             ->row();
 
         if (!$ticket) {
-            show_error('Unauthorized or ticket not found.', 403);
+            $this->_redirect_to_dashboard();
+            exit;
         }
 
         $status = $this->input->post('ticket_status');
 
         $allowed = ['In Progress', 'Resolved'];
         if (!in_array($status, $allowed)) {
-            show_error('Invalid status.', 400);
+            redirect('tech/tickets');
+            exit;
         }
 
         $update_data = [
@@ -161,7 +199,8 @@ class Tech extends MY_Controller
         if ($status === 'Resolved') {
             $resolution_notes = $this->input->post('resolution_notes');
             if (empty($resolution_notes)) {
-                show_error('Resolution notes are required when resolving a ticket.', 400);
+                redirect('tech/tickets');
+                exit;
             }
             $update_data['resolution_details'] = $resolution_notes;
             $update_data['resolved_at']        = date('Y-m-d H:i:s');
@@ -177,12 +216,59 @@ class Tech extends MY_Controller
             'created_at'   => date('Y-m-d H:i:s')
         ]);
 
+        $status_comment = $this->input->post('status_comment');
+        if (!empty($status_comment)) {
+            $this->db->insert('ticket_activities', [
+                'ticket_id'    => $id,
+                'activity'     => 'Progress update: ' . $status_comment,
+                'performed_by' => $this->session->userdata('user_id'),
+                'created_at'   => date('Y-m-d H:i:s')
+            ]);
+        }
+
         $this->db->insert('activity_logs', [
             'user_id'    => $this->session->userdata('user_id'),
             'action'     => 'Updated ticket #' . $id . ' status to ' . $status,
             'created_at' => date('Y-m-d H:i:s')
         ]);
 
+        redirect('tech/tickets');
+    }
+
+    public function return_ticket($id)
+    {
+        $team_id = $this->session->userdata('team_id');
+
+        $ticket = $this->db->where('id', $id)
+            ->where('assigned_team', $team_id)
+            ->get('tickets')
+            ->row();
+
+        if (!$ticket) {
+            $this->_redirect_to_dashboard();
+            exit;
+        }
+
+        $this->db->where('id', $id)->update('tickets', [
+            'ticket_status' => 'New',
+            'assigned_team' => null,
+            'updated_at'    => date('Y-m-d H:i:s')
+        ]);
+
+        $this->db->insert('ticket_activities', [
+            'ticket_id'    => $id,
+            'activity'     => 'Ticket returned to CSR by TECH',
+            'performed_by' => $this->session->userdata('user_id'),
+            'created_at'   => date('Y-m-d H:i:s')
+        ]);
+
+        $this->db->insert('activity_logs', [
+            'user_id'    => $this->session->userdata('user_id'),
+            'action'     => 'Returned ticket #' . $id . ' to CSR',
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->session->set_flashdata('success', 'Ticket returned to CSR successfully.');
         redirect('tech/tickets');
     }
 
@@ -196,7 +282,6 @@ class Tech extends MY_Controller
 
         $ticket = $this->db->where('tickets.id', $id)->get()->row();
 
-        // Fallback: if resolved_by is null, look up from ticket_activities
         if ($ticket && empty($ticket->resolved_by_name) && in_array($ticket->ticket_status, ['Resolved', 'For Closure', 'Closed'])) {
             $activity = $this->db
                 ->select('users.full_name')
